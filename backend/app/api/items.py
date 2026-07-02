@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.database import get_db
-from app.models.item import ItemStatus
+from app.models.item import ItemStatus, TaggedBy, TaggingStatus
 from app.models.user import User
 from app.schemas.item import (
     ArchiveRequest,
@@ -38,6 +38,8 @@ from app.services.item_service import ItemService
 from app.utils.auth import get_current_user
 from app.workers.settings import get_redis_settings
 
+TAG_WRITEBACK_FIELDS = {"type", "subtype", "tags", "colors", "primary_color"}
+
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
@@ -54,6 +56,7 @@ async def list_items(
     subtype: str | None = None,
     colors: str | None = None,
     status: str | None = None,
+    tagging_status: str | None = None,
     favorite: bool | None = None,
     needs_wash: bool | None = None,
     is_archived: bool = False,
@@ -68,6 +71,7 @@ async def list_items(
         subtype=subtype,
         colors=color_list,
         status=status,
+        tagging_status=tagging_status,
         favorite=favorite,
         needs_wash=needs_wash,
         is_archived=is_archived,
@@ -106,6 +110,7 @@ async def create_item(
     colors: str | None = Form(None),
     primary_color: str | None = Form(None),
     favorite: bool = Form(False),
+    auto_tag: bool | None = Form(None),
 ) -> ItemResponse:
     # Validate and process image
     image_service = ImageService()
@@ -169,23 +174,27 @@ async def create_item(
         image_paths=image_paths,
     )
 
-    # Queue AI tagging job
-    try:
-        redis = await create_pool(get_redis_settings())
+    do_auto_tag = settings.effective_ai_vision_enabled and auto_tag is not False
+    if do_auto_tag:
         try:
-            full_image_path = f"{settings.storage_path}/{image_paths['image_path']}"
-            await redis.enqueue_job(
-                "tag_item_image",
-                str(item.id),
-                full_image_path,
-                _queue_name="arq:tagging",
-            )
-            logger.info(f"Queued AI tagging job for item {item.id}")
-        finally:
-            await redis.aclose()
-    except Exception as e:
-        # Don't fail the upload if queueing fails
-        logger.error(f"Failed to queue AI tagging job: {e}")
+            redis = await create_pool(get_redis_settings())
+            try:
+                full_image_path = f"{settings.storage_path}/{image_paths['image_path']}"
+                await redis.enqueue_job(
+                    "tag_item_image",
+                    str(item.id),
+                    full_image_path,
+                    _queue_name="arq:tagging",
+                )
+                logger.info(f"Queued AI tagging job for item {item.id}")
+            finally:
+                await redis.aclose()
+        except Exception as e:
+            # Don't fail the upload if queueing fails
+            logger.error(f"Failed to queue AI tagging job: {e}")
+    else:
+        item = await item_service.mark_pending(item, set_ready=True)
+        logger.info(f"Item {item.id} left pending for external tagging")
 
     return ItemResponse.model_validate(item)
 
@@ -216,11 +225,13 @@ async def bulk_create_items(
     failed = 0
 
     # Create Redis pool once for all jobs
+    do_auto_tag = settings.effective_ai_vision_enabled
     redis = None
-    try:
-        redis = await create_pool(get_redis_settings())
-    except Exception as e:
-        logger.error(f"Failed to connect to Redis for bulk upload: {e}")
+    if do_auto_tag and not skip_ai:
+        try:
+            redis = await create_pool(get_redis_settings())
+        except Exception as e:
+            logger.error(f"Failed to connect to Redis for bulk upload: {e}")
 
     try:
         for upload_file in images:
@@ -277,10 +288,9 @@ async def bulk_create_items(
                     image_paths=image_paths,
                 )
 
-                if skip_ai:
-                    item.status = ItemStatus.ready
-                    await db.flush()
-                    await db.refresh(item, attribute_names=["updated_at"])
+                # Queue AI tagging job unless skipped per-request or disabled
+                if skip_ai or not do_auto_tag:
+                    item = await item_service.mark_pending(item, set_ready=True)
                 elif redis:
                     try:
                         full_image_path = f"{settings.storage_path}/{image_paths['image_path']}"
@@ -425,6 +435,15 @@ async def bulk_analyze_items(
             continue
         items_to_process.append(item)
 
+    if not settings.effective_ai_vision_enabled:
+        for item in items_to_process:
+            item.status = ItemStatus.ready
+            item.tagging_status = TaggingStatus.pending
+            item.tagged_by = None
+            item.tagged_at = None
+        await db.commit()
+        return BulkAnalyzeResponse(queued=0, failed=failed, errors=errors)
+
     # Set all items to processing status
     for item in items_to_process:
         item.status = ItemStatus.processing
@@ -522,6 +541,15 @@ async def update_item(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Item not found",
         )
+
+    update_data = item_data.model_dump(exclude_unset=True)
+    is_writeback = item.tagging_status == TaggingStatus.pending and any(
+        update_data.get(field) not in (None, "", [], {}) for field in TAG_WRITEBACK_FIELDS
+    )
+    if is_writeback:
+        item.tagging_status = TaggingStatus.tagged
+        item.tagged_by = TaggedBy.manual
+        item.tagged_at = datetime.now(UTC)
 
     item = await item_service.update(item, item_data)
     return ItemResponse.model_validate(item)
@@ -795,6 +823,14 @@ async def trigger_ai_analysis(
             detail="Item not found",
         )
 
+    if not settings.effective_ai_vision_enabled:
+        item.status = ItemStatus.ready
+        item.tagging_status = TaggingStatus.pending
+        item.tagged_by = None
+        item.tagged_at = None
+        await db.commit()
+        return {"status": "deferred", "detail": "Internal vision disabled; item marked pending"}
+
     try:
         # Set item status to processing so UI shows feedback
         item.status = ItemStatus.processing
@@ -819,6 +855,26 @@ async def trigger_ai_analysis(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to queue AI analysis",
         ) from None
+
+
+@router.post("/{item_id}/retag", response_model=ItemResponse)
+async def retag_item(
+    item_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> ItemResponse:
+    """Reset an item to the pending tagging queue and clear its tagging origin."""
+    item_service = ItemService(db)
+    item = await item_service.get_by_id(item_id, current_user.id)
+
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found",
+        )
+
+    item = await item_service.mark_pending(item)
+    return ItemResponse.model_validate(item)
 
 
 @router.post("/{item_id}/rotate", response_model=ItemResponse)
