@@ -79,6 +79,7 @@ class ItemResponse(ItemBase):
     image_path: str
     thumbnail_path: str | None = None
     medium_path: str | None = None
+    original_image_path: str | None = None
     tags: dict = Field(default_factory=dict)
     colors: list[str] = Field(default_factory=list)
     primary_color: str | None = None
@@ -88,12 +89,12 @@ class ItemResponse(ItemBase):
     formality: str | None = None
     season: list[str] = Field(default_factory=list)
     status: str
-    tagging_status: str = "pending"
-    tagged_by: str | None = None
-    tagged_at: datetime | None = None
     ai_processed: bool = False
     ai_confidence: Decimal | None = None
     ai_description: str | None = None
+    tagging_status: str = "pending"
+    tagged_by: str | None = None
+    tagged_at: datetime | None = None
     wear_count: int = 0
     last_worn_at: date | None = None
     last_suggested_at: date | None = None

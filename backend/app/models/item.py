@@ -55,6 +55,7 @@ class ClothingItem(Base):
     image_path: Mapped[str] = mapped_column(String(500), nullable=False)
     thumbnail_path: Mapped[str | None] = mapped_column(String(500))
     medium_path: Mapped[str | None] = mapped_column(String(500))
+    original_image_path: Mapped[str | None] = mapped_column(String(500))
     image_hash: Mapped[str | None] = mapped_column(String(16), index=True)  # pHash hex string
 
     # Classification
@@ -75,19 +76,16 @@ class ClothingItem(Base):
     status: Mapped[ItemStatus] = mapped_column(
         Enum(ItemStatus, name="item_status"), default=ItemStatus.processing
     )
+    ai_job_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     ai_processed: Mapped[bool] = mapped_column(Boolean, default=False)
     ai_confidence: Mapped[Decimal | None] = mapped_column(Numeric(3, 2))
     ai_raw_response: Mapped[dict | None] = mapped_column(JSONB)
 
-    # Tagging lifecycle
+    # Tagging lifecycle (external agent hand-off)
     tagging_status: Mapped[TaggingStatus] = mapped_column(
-        Enum(TaggingStatus, name="tagging_status", create_type=False),
-        default=TaggingStatus.pending,
-        nullable=False,
+        Enum(TaggingStatus, name="tagging_status"), nullable=False, default=TaggingStatus.pending
     )
-    tagged_by: Mapped[TaggedBy | None] = mapped_column(
-        Enum(TaggedBy, name="tagged_by", create_type=False)
-    )
+    tagged_by: Mapped[TaggedBy | None] = mapped_column(Enum(TaggedBy, name="tagged_by"))
     tagged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     # Usage tracking

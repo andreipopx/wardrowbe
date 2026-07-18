@@ -30,6 +30,7 @@ export interface Item {
   image_path: string;
   thumbnail_path?: string;
   medium_path?: string;
+  original_image_path?: string | null;
   image_url?: string;
   thumbnail_url?: string;
   medium_url?: string;
@@ -40,6 +41,9 @@ export interface Item {
   ai_processed: boolean;
   ai_confidence?: number;
   ai_description?: string;
+  tagging_status: 'pending' | 'tagged';
+  tagged_by?: 'auto' | 'manual' | null;
+  tagged_at?: string | null;
   wear_count: number;
   last_worn_at?: string;
   last_suggested_at?: string;

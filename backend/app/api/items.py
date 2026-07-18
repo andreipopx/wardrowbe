@@ -1,17 +1,19 @@
 import asyncio
 import logging
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from arq import create_pool
+from arq.jobs import Job
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.database import get_db
-from app.models.item import ItemStatus, TaggedBy, TaggingStatus
+from app.models.item import ClothingItem, ItemStatus, TaggedBy, TaggingStatus
 from app.models.user import User
 from app.schemas.item import (
     ArchiveRequest,
@@ -38,12 +40,19 @@ from app.services.item_service import ItemService
 from app.utils.auth import get_current_user
 from app.workers.settings import get_redis_settings
 
-TAG_WRITEBACK_FIELDS = {"type", "subtype", "tags", "colors", "primary_color"}
-
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
 router = APIRouter(prefix="/items", tags=["Items"])
+
+TAG_WRITEBACK_FIELDS = {"type", "subtype", "colors", "primary_color", "tags"}
+_EMPTY_TAG_VALUES = (None, "", [], {})
+
+
+def _has_tag_content(field: str, value: Any) -> bool:
+    if field == "tags" and isinstance(value, dict):
+        return any(v not in _EMPTY_TAG_VALUES for v in value.values())
+    return value not in _EMPTY_TAG_VALUES
 
 
 @router.get("", response_model=ItemListResponse)
@@ -175,26 +184,28 @@ async def create_item(
     )
 
     do_auto_tag = settings.effective_ai_vision_enabled and not skip_ai
+
     if do_auto_tag:
         try:
             redis = await create_pool(get_redis_settings())
             try:
                 full_image_path = f"{settings.storage_path}/{image_paths['image_path']}"
-                await redis.enqueue_job(
+                job = await redis.enqueue_job(
                     "tag_item_image",
                     str(item.id),
                     full_image_path,
                     _queue_name="arq:tagging",
                 )
+                item.ai_job_id = job.job_id
+                await db.commit()
+                await db.refresh(item, attribute_names=["updated_at"])
                 logger.info(f"Queued AI tagging job for item {item.id}")
             finally:
                 await redis.aclose()
         except Exception as e:
-            # Don't fail the upload if queueing fails
             logger.error(f"Failed to queue AI tagging job: {e}")
     else:
         item = await item_service.mark_pending(item, set_ready=True)
-        logger.info(f"Item {item.id} left pending for external tagging")
 
     return ItemResponse.model_validate(item)
 
@@ -224,8 +235,8 @@ async def bulk_create_items(
     successful = 0
     failed = 0
 
-    # Create Redis pool once for all jobs
     do_auto_tag = settings.effective_ai_vision_enabled and not skip_ai
+
     redis = None
     if do_auto_tag:
         try:
@@ -293,12 +304,15 @@ async def bulk_create_items(
                 elif redis:
                     try:
                         full_image_path = f"{settings.storage_path}/{image_paths['image_path']}"
-                        await redis.enqueue_job(
+                        job = await redis.enqueue_job(
                             "tag_item_image",
                             str(item.id),
                             full_image_path,
                             _queue_name="arq:tagging",
                         )
+                        item.ai_job_id = job.job_id
+                        await db.flush()
+                        await db.refresh(item, attribute_names=["updated_at"])
                         logger.info(f"Queued AI tagging for bulk item {item.id}")
                     except Exception as e:
                         logger.error(f"Failed to queue AI tagging for {item.id}: {e}")
@@ -379,12 +393,12 @@ async def bulk_delete_items(
                 failed += 1
                 continue
 
-            # Delete images
             image_service.delete_images(
                 {
                     "image_path": item.image_path,
                     "medium_path": item.medium_path,
                     "thumbnail_path": item.thumbnail_path,
+                    "original_backup_path": item.original_image_path,
                 }
             )
 
@@ -443,7 +457,6 @@ async def bulk_analyze_items(
         await db.commit()
         return BulkAnalyzeResponse(queued=0, failed=failed, errors=errors)
 
-    # Set all items to processing status
     for item in items_to_process:
         item.status = ItemStatus.processing
     await db.commit()
@@ -542,10 +555,7 @@ async def update_item(
         )
 
     update_data = item_data.model_dump(exclude_unset=True)
-    is_writeback = item.tagging_status == TaggingStatus.pending and any(
-        update_data.get(field) not in (None, "", [], {}) for field in TAG_WRITEBACK_FIELDS
-    )
-    if is_writeback:
+    if any(_has_tag_content(f, update_data.get(f)) for f in TAG_WRITEBACK_FIELDS):
         item.tagging_status = TaggingStatus.tagged
         item.tagged_by = TaggedBy.manual
         item.tagged_at = datetime.now(UTC)
@@ -569,13 +579,13 @@ async def delete_item(
             detail="Item not found",
         )
 
-    # Delete images
     image_service = ImageService()
     image_service.delete_images(
         {
             "image_path": item.image_path,
             "medium_path": item.medium_path,
             "thumbnail_path": item.thumbnail_path,
+            "original_backup_path": item.original_image_path,
         }
     )
 
@@ -825,10 +835,9 @@ async def trigger_ai_analysis(
     if not settings.effective_ai_vision_enabled:
         await item_service.mark_pending(item, set_ready=True)
         await db.commit()
-        return {"status": "deferred", "detail": "Internal vision disabled; item marked pending"}
+        return {"status": "deferred", "reason": "vision disabled"}
 
     try:
-        # Set item status to processing so UI shows feedback
         item.status = ItemStatus.processing
         await db.commit()
 
@@ -841,6 +850,8 @@ async def trigger_ai_analysis(
                 full_image_path,
                 _queue_name="arq:tagging",
             )
+            item.ai_job_id = job.job_id
+            await db.commit()
             logger.info(f"Queued AI re-analysis job for item {item.id}")
             return {"status": "queued", "job_id": job.job_id}
         finally:
@@ -859,7 +870,6 @@ async def retag_item(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ItemResponse:
-    """Reset an item to the pending tagging queue and clear its tagging origin."""
     item_service = ItemService(db)
     item = await item_service.get_by_id(item_id, current_user.id)
 
@@ -870,6 +880,53 @@ async def retag_item(
         )
 
     item = await item_service.mark_pending(item)
+    return ItemResponse.model_validate(item)
+
+
+@router.post("/{item_id}/cancel-analysis", response_model=ItemResponse)
+async def cancel_item_analysis(
+    item_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> ItemResponse:
+    item_service = ItemService(db)
+    item = await item_service.get_by_id(item_id, current_user.id)
+
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found",
+        )
+
+    if item.status != ItemStatus.processing:
+        return ItemResponse.model_validate(item)
+
+    if item.ai_job_id:
+        redis = None
+        try:
+            redis = await create_pool(get_redis_settings())
+            job = Job(item.ai_job_id, redis, _queue_name="arq:tagging")
+            await job.abort(timeout=5)
+        except Exception as e:
+            # abort failing or timing out must not block the status flip below;
+            # the guarded UPDATE in update_item_status_to_error protects against
+            # a stray worker finishing this job after we've already flipped it.
+            logger.warning(f"Failed to abort AI job for item {item_id}: {e}")
+        finally:
+            if redis:
+                await redis.aclose()
+
+    await db.execute(
+        update(ClothingItem)
+        .where(ClothingItem.id == item.id, ClothingItem.status == ItemStatus.processing)
+        .values(status=ItemStatus.ready, ai_job_id=None)
+    )
+    await db.commit()
+    # updated_at is recomputed by a DB-side trigger on UPDATE, so the Core update()
+    # above leaves the in-memory value stale; refresh it explicitly alongside the
+    # columns we changed instead of a bare refresh(), which would also expire the
+    # already eager-loaded additional_images relationship and blow up serialization.
+    await db.refresh(item, attribute_names=["status", "ai_job_id", "updated_at"])
     return ItemResponse.model_validate(item)
 
 
@@ -945,9 +1002,10 @@ async def remove_item_background(
 
     try:
         image_service = ImageService()
-        await asyncio.to_thread(image_service.remove_background, item.image_path, bg_color)
+        result = await asyncio.to_thread(image_service.remove_background, item.image_path, bg_color)
+        item.original_image_path = result["original_backup_path"]
         await db.commit()
-        await db.refresh(item)
+        await db.refresh(item, attribute_names=["original_image_path", "updated_at"])
         return ItemResponse.model_validate(item)
     except ImportError:
         raise HTTPException(
@@ -967,6 +1025,120 @@ async def remove_item_background(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to remove background",
         ) from None
+
+
+@router.post("/{item_id}/restore-original", response_model=ItemResponse)
+async def restore_item_original(
+    item_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> ItemResponse:
+    item_service = ItemService(db)
+    item = await item_service.get_by_id(item_id, current_user.id)
+
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found",
+        )
+
+    if not item.original_image_path:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No original image to restore",
+        )
+
+    try:
+        image_service = ImageService()
+        await asyncio.to_thread(
+            image_service.restore_original, item.image_path, item.original_image_path
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from None
+    except Exception as e:
+        logger.error(f"Failed to restore original image: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to restore original image",
+        ) from None
+
+    item.original_image_path = None
+    await db.commit()
+    await db.refresh(item, attribute_names=["original_image_path", "updated_at"])
+    return ItemResponse.model_validate(item)
+
+
+@router.put("/{item_id}/image", response_model=ItemResponse)
+async def replace_item_image(
+    item_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    image: UploadFile = File(...),
+) -> ItemResponse:
+    item_service = ItemService(db)
+    item = await item_service.get_by_id(item_id, current_user.id)
+
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found",
+        )
+
+    image_service = ImageService()
+    content = await image.read()
+    content_type = image.content_type or "application/octet-stream"
+
+    if not image_service.validate_image(content, content_type):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid image file. Supported formats: JPEG, PNG, WebP, HEIC",
+        )
+
+    try:
+        image_paths = await image_service.process_and_store(
+            user_id=current_user.id,
+            image_data=content,
+            original_filename=image.filename or "upload.jpg",
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from None
+
+    old_paths = {
+        "image_path": item.image_path,
+        "medium_path": item.medium_path,
+        "thumbnail_path": item.thumbnail_path,
+        "original_backup_path": item.original_image_path,
+    }
+
+    item.image_path = image_paths["image_path"]
+    item.medium_path = image_paths["medium_path"]
+    item.thumbnail_path = image_paths["thumbnail_path"]
+    item.image_hash = image_paths["image_hash"]
+    item.original_image_path = None
+    await db.commit()
+    await db.refresh(
+        item,
+        attribute_names=[
+            "image_path",
+            "medium_path",
+            "thumbnail_path",
+            "image_hash",
+            "original_image_path",
+            "updated_at",
+        ],
+    )
+
+    # Old files are removed only after the new paths are committed, so a failed
+    # commit cannot leave the item pointing at deleted files
+    image_service.delete_images(old_paths)
+
+    return ItemResponse.model_validate(item)
 
 
 @router.post(

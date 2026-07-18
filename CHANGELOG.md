@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1](https://github.com/Anyesh/wardrowbe/compare/wardrowbe-v1.5.0...wardrowbe-v1.5.1) (2026-07-17)
+
+
+### 🐛 Bug Fixes
+
+* [#124](https://github.com/Anyesh/wardrowbe/issues/124) fix prod compose file well ([3cded21](https://github.com/Anyesh/wardrowbe/commit/3cded21db36b877ef2a0a90815a620be2cc4bdf5))
+* keep honoring NEXT_PUBLIC_API_URL when resolving the backend ([#124](https://github.com/Anyesh/wardrowbe/issues/124)) ([d8cca73](https://github.com/Anyesh/wardrowbe/commit/d8cca73dd5c20315e2d7d256b112663b84894c11))
+* proxy /api/v1 through a route handler so BACKEND_URL applies ([#124](https://github.com/Anyesh/wardrowbe/issues/124)) ([2fff9c3](https://github.com/Anyesh/wardrowbe/commit/2fff9c399e0feae14266c36a1afb5ff46c437207))
+
+## [1.5.0](https://github.com/Anyesh/wardrowbe/compare/wardrowbe-v1.4.0...wardrowbe-v1.5.0) (2026-07-16)
+
+
+### ✨ Features
+
+* add page-size control and scope select-all to current page ([#127](https://github.com/Anyesh/wardrowbe/issues/127)) ([7430a4f](https://github.com/Anyesh/wardrowbe/commit/7430a4f910a65d6db810a5381f362e91f902694f))
+* allow bulk upload without forced AI analysis ([#128](https://github.com/Anyesh/wardrowbe/issues/128)) ([7984e26](https://github.com/Anyesh/wardrowbe/commit/7984e26f4fa233a1a40d95805e74e6444ffa2bc6))
+* allow cancelling AI analysis on processing items ([#95](https://github.com/Anyesh/wardrowbe/issues/95)) ([05f3578](https://github.com/Anyesh/wardrowbe/commit/05f357808d55a74de1394b5ec36cf5472370ba21))
+* support PUID/PGID overrides on app containers ([#123](https://github.com/Anyesh/wardrowbe/issues/123)) ([14674cb](https://github.com/Anyesh/wardrowbe/commit/14674cbbfd79e371b08d9761f02542aafe040cc3))
+* undo background removal and replace primary image ([#126](https://github.com/Anyesh/wardrowbe/issues/126)) ([c1c10b2](https://github.com/Anyesh/wardrowbe/commit/c1c10b2803b90104d5323ef112e66f786af75baa))
+
+
+### 🐛 Bug Fixes
+
+* allow overriding backend URL for renamed compose services ([#124](https://github.com/Anyesh/wardrowbe/issues/124)) ([2a813d6](https://github.com/Anyesh/wardrowbe/commit/2a813d60d711aa31c45ae7c024f1389b345be170))
+* chunk bulk uploads so batches over the limit no longer fail ([#125](https://github.com/Anyesh/wardrowbe/issues/125)) ([a4df578](https://github.com/Anyesh/wardrowbe/commit/a4df578b187b0343eff5091c49b7e02b76ec0546))
+
 ## [1.4.0](https://github.com/Anyesh/wardrowbe/compare/wardrowbe-v1.3.1...wardrowbe-v1.4.0) (2026-07-01)
 
 

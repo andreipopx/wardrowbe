@@ -196,17 +196,6 @@ class ItemService:
         await self.db.refresh(item, ["additional_images"])
         return item
 
-    # Tag attributes that also exist as first-class columns; `fit` is JSONB-only.
-    _TAG_COLUMN_ATTRS = (
-        "colors",
-        "primary_color",
-        "pattern",
-        "material",
-        "style",
-        "season",
-        "formality",
-    )
-
     async def update(self, item: ClothingItem, item_data: ItemUpdate) -> ClothingItem:
         update_data = item_data.model_dump(exclude_unset=True)
 
@@ -216,15 +205,24 @@ class ItemService:
                 update_data["tags"] = {k: v for k, v in tags.items() if v is not None}
             else:
                 update_data["tags"] = tags.model_dump(exclude_none=True)
-            for attr in self._TAG_COLUMN_ATTRS:
-                if attr in update_data["tags"]:
-                    setattr(item, attr, update_data["tags"][attr])
 
         for field, value in update_data.items():
             setattr(item, field, value)
 
         if "tags" in update_data:
             attributes.flag_modified(item, "tags")
+            tag_data = update_data["tags"] or {}
+            for column in (
+                "colors",
+                "primary_color",
+                "pattern",
+                "material",
+                "style",
+                "season",
+                "formality",
+            ):
+                if column in tag_data:
+                    setattr(item, column, tag_data[column])
 
         await self.db.flush()
         # Re-fetch with eager loading to ensure relationships are properly loaded

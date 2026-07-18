@@ -7,7 +7,7 @@ tagged_at columns on clothing_items. Existing rows are backfilled to tagged/auto
 they never surface in the agent's pending work-queue (back-compat: behavior unchanged).
 
 Revision ID: c1a2b3d4e5f6
-Revises: e1f2g3h4i5j6
+Revises: b8c9d0e1f2a3
 Create Date: 2026-06-19 18:50:00.000000
 
 """
@@ -20,7 +20,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "c1a2b3d4e5f6"
-down_revision: str | None = "e1f2g3h4i5j6"
+down_revision: str | None = "b8c9d0e1f2a3"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
