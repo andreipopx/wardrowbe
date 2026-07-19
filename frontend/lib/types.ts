@@ -41,6 +41,9 @@ export interface Item {
   ai_processed: boolean;
   ai_confidence?: number;
   ai_description?: string;
+  tagging_status: 'pending' | 'tagged';
+  tagged_by?: 'auto' | 'manual' | null;
+  tagged_at?: string | null;
   wear_count: number;
   last_worn_at?: string;
   last_suggested_at?: string;

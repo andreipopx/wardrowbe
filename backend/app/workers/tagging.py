@@ -1,4 +1,5 @@
 import logging
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from uuid import UUID
@@ -6,7 +7,7 @@ from uuid import UUID
 from sqlalchemy import select, update
 
 from app.config import get_settings
-from app.models.item import ClothingItem, ItemStatus
+from app.models.item import ClothingItem, ItemStatus, TaggedBy, TaggingStatus
 from app.services.ai_service import AIService, ClothingTags
 from app.workers.db import get_db_session
 
@@ -47,6 +48,9 @@ def tags_to_item_fields(tags: ClothingTags, raw_response: str | None = None) -> 
         "ai_confidence": tags.confidence,
         "ai_description": tags.description,  # Human-readable description
         "status": ItemStatus.ready,
+        "tagging_status": TaggingStatus.tagged,
+        "tagged_by": TaggedBy.auto,
+        "tagged_at": datetime.now(UTC),
     }
     if raw_response:
         fields["ai_raw_response"] = {"raw_text": raw_response}
@@ -60,6 +64,7 @@ async def mark_item_tagging_skipped(ctx: dict, item_id: str) -> None:
         item = result.scalar_one_or_none()
         if item and item.status == ItemStatus.processing:
             item.status = ItemStatus.ready
+            item.tagging_status = TaggingStatus.pending
             await db.commit()
     finally:
         await db.close()
@@ -161,6 +166,10 @@ async def tag_item_image(ctx: dict, item_id: str, image_path: str) -> dict[str, 
             # Always update: ai_processed, ai_confidence, status, ai_raw_response
             # Conditionally update: type, subtype, primary_color, colors, pattern, material, style, formality, season
             ai_fields = tags_to_item_fields(tags, tags.raw_response)
+            # Snapshotted once: applying tagging_status before tagged_by/tagged_at in the
+            # same loop would otherwise make the guard for the later two fields see the
+            # already-updated status and skip them even outside of a race.
+            was_pending = item.tagging_status == TaggingStatus.pending
 
             for field, value in ai_fields.items():
                 # Always update AI metadata fields (including tags JSONB and description)
@@ -173,6 +182,9 @@ async def tag_item_image(ctx: dict, item_id: str, image_path: str) -> dict[str, 
                     "ai_description",
                 ):
                     setattr(item, field, value)
+                elif field in ("tagging_status", "tagged_by", "tagged_at"):
+                    if was_pending:
+                        setattr(item, field, value)
                 # Only update content fields if user hasn't set them (or they're default/unknown)
                 elif field == "type":
                     if not item.type or item.type == "unknown":
