@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
 import { Providers } from './providers';
+import { ServiceWorkerRegister } from '@/components/sw-register';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +13,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Wardrowbe',
   description: 'AI-powered wardrobe management and outfit recommendations',
+  manifest: '/manifest.webmanifest',
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -22,6 +26,11 @@ export const metadata: Metadata = {
       { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Wardrowbe',
+  },
 };
 
 export const viewport: Viewport = {
@@ -29,17 +38,23 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#0f172a',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={inter.className}>
-        <Providers>{children}</Providers>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

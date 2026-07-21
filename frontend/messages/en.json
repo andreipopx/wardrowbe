@@ -1,0 +1,51 @@
+{
+  "common": {
+    "signIn": "Sign in",
+    "signInVerb": "Sign in",
+    "signingIn": "Signing in...",
+    "signOut": "Sign out",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "loading": "Loading...",
+    "language": "Language",
+    "english": "English",
+    "spanish": "Spanish"
+  },
+  "login": {
+    "brand": "wardrowbe",
+    "tagline": "Sign in to manage your wardrobe",
+    "backendErrorTitle": "Backend Configuration Error",
+    "backendErrorDefault": "Unable to connect to backend server. Please check that the backend is running.",
+    "notConfiguredTitle": "No authentication method configured",
+    "notConfiguredHint": "Set {oidc} + {clientId} for SSO, or add {devMode} to the frontend service for local use.",
+    "devBanner": "Development Mode - Any credentials accepted",
+    "emailLabel": "Email",
+    "nameLabel": "Display Name",
+    "emailPlaceholder": "dev@example.com",
+    "namePlaceholder": "Your Name",
+    "terms": "By signing in, you agree to our terms of service and privacy policy."
+  },
+  "nav": {
+    "wardrobe": "Wardrobe",
+    "outfits": "Outfits",
+    "suggest": "Suggest",
+    "settings": "Settings",
+    "family": "Family",
+    "history": "History",
+    "notifications": "Notifications"
+  },
+  "onboarding": {
+    "welcomeTitle": "Welcome to Wardrowbe, {name}!",
+    "welcomeSubtitle": "Let's get your digital wardrobe set up in just a few steps.",
+    "step1Title": "Photograph your clothes",
+    "step1Desc": "Our AI will automatically tag colors, styles, and more",
+    "step2Title": "Get personalized outfits",
+    "step2Desc": "Daily recommendations based on weather and your style",
+    "step3Title": "Share with family",
+    "step3Desc": "Everyone can have their own personalized wardrobe",
+    "getStarted": "Get Started"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "common": {
+    "signIn": "Iniciar sesión",
+    "signInVerb": "Entrar",
+    "signingIn": "Entrando...",
+    "signOut": "Cerrar sesión",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "loading": "Cargando...",
+    "language": "Idioma",
+    "english": "Inglés",
+    "spanish": "Español"
+  },
+  "login": {
+    "brand": "wardrowbe",
+    "tagline": "Inicia sesión para gestionar tu armario",
+    "backendErrorTitle": "Error de configuración del backend",
+    "backendErrorDefault": "No se puede conectar con el servidor. Verifica que el backend esté funcionando.",
+    "notConfiguredTitle": "No hay método de autenticación configurado",
+    "notConfiguredHint": "Define {oidc} + {clientId} para SSO, o añade {devMode} al servicio frontend para uso local.",
+    "devBanner": "Modo desarrollo - Cualquier credencial es aceptada",
+    "emailLabel": "Email",
+    "nameLabel": "Nombre",
+    "emailPlaceholder": "dev@ejemplo.com",
+    "namePlaceholder": "Tu nombre",
+    "terms": "Al iniciar sesión aceptas nuestros términos de servicio y política de privacidad."
+  },
+  "nav": {
+    "wardrobe": "Armario",
+    "outfits": "Conjuntos",
+    "suggest": "Sugerir",
+    "settings": "Ajustes",
+    "family": "Familia",
+    "history": "Historial",
+    "notifications": "Notificaciones"
+  },
+  "onboarding": {
+    "welcomeTitle": "¡Bienvenido a Wardrowbe, {name}!",
+    "welcomeSubtitle": "Vamos a preparar tu armario digital en unos pocos pasos.",
+    "step1Title": "Fotografía tu ropa",
+    "step1Desc": "Nuestra IA etiquetará colores, estilos y más automáticamente",
+    "step2Title": "Recibe conjuntos personalizados",
+    "step2Desc": "Recomendaciones diarias según el clima y tu estilo",
+    "step3Title": "Compártelo en familia",
+    "step3Desc": "Cada persona puede tener su propio armario personalizado",
+    "getStarted": "Empezar"
+  }
+}

@@ -1,3 +1,6 @@
+const createNextIntlPlugin = require('next-intl/plugin');
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -20,4 +23,4 @@ const nextConfig = {
   // runtime BACKEND_URL in the prebuilt image.
 };
 
-module.exports = nextConfig;
+module.exports = withNextIntl(nextConfig);

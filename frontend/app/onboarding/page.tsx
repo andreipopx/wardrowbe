@@ -35,6 +35,7 @@ import { useCreateItem } from '@/lib/hooks/use-items';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { api, setAccessToken } from '@/lib/api';
 import { CLOTHING_COLORS, CLOTHING_TYPES, StyleProfile } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 
 const STEPS = [
   { id: 'welcome', title: 'Welcome', icon: Shirt },
@@ -82,6 +83,8 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 function WelcomeStep({ onNext }: { onNext: () => void }) {
   // Use unified auth hook to get user name (works in both auth modes)
   const { user } = useAuth();
+  const t = useTranslations('onboarding');
+  const firstName = user?.display_name ? user.display_name.split(' ')[0] : '';
 
   return (
     <div className="text-center space-y-6">
@@ -92,10 +95,10 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
       </div>
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Welcome to Wardrowbe{user?.display_name ? `, ${user.display_name.split(' ')[0]}` : ''}!
+          {t('welcomeTitle', { name: firstName || 'friend' })}
         </h1>
         <p className="text-muted-foreground mt-2 text-lg">
-          Let&apos;s get your digital wardrobe set up in just a few steps.
+          {t('welcomeSubtitle')}
         </p>
       </div>
       <div className="grid gap-4 text-left max-w-md mx-auto">
@@ -104,10 +107,8 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
             <Camera className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <p className="font-medium">Photograph your clothes</p>
-            <p className="text-sm text-muted-foreground">
-              Our AI will automatically tag colors, styles, and more
-            </p>
+            <p className="font-medium">{t('step1Title')}</p>
+            <p className="text-sm text-muted-foreground">{t('step1Desc')}</p>
           </div>
         </div>
         <div className="flex items-start gap-3">
@@ -115,10 +116,8 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
             <Palette className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <p className="font-medium">Get personalized outfits</p>
-            <p className="text-sm text-muted-foreground">
-              Daily recommendations based on weather and your style
-            </p>
+            <p className="font-medium">{t('step2Title')}</p>
+            <p className="text-sm text-muted-foreground">{t('step2Desc')}</p>
           </div>
         </div>
         <div className="flex items-start gap-3">
@@ -126,15 +125,13 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
             <Users className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <p className="font-medium">Share with family</p>
-            <p className="text-sm text-muted-foreground">
-              Everyone can have their own personalized wardrobe
-            </p>
+            <p className="font-medium">{t('step3Title')}</p>
+            <p className="text-sm text-muted-foreground">{t('step3Desc')}</p>
           </div>
         </div>
       </div>
-      <Button size="lg" onClick={onNext}>
-        Get Started
+      <Button size="lg" onClick={onNext} className="min-h-[44px]">
+        {t('getStarted')}
         <ArrowRight className="ml-2 w-5 h-5" />
       </Button>
     </div>
