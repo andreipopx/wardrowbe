@@ -540,14 +540,18 @@ export default function SuggestPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Page header with greeting */}
-      <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">{getGreeting()}</h1>
-        <p className="text-muted-foreground">
-          {t('pageSubtitle')}
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-10 sm:py-16 space-y-10">
+      {/* Editorial header */}
+      <header className="text-center max-w-2xl mx-auto">
+        <p className="label-editorial text-gold">{getGreeting()}</p>
+        <h1 className="font-display italic font-black text-display-xl leading-none mt-3">
+          {t('title')}
+        </h1>
+        <div className="h-px w-16 bg-gold mx-auto mt-8" />
+        <p className="font-editorial italic text-xl text-muted-foreground mt-8">
+          {t('editorialSubtitle')}
         </p>
-      </div>
+      </header>
 
       {error && (
         <Alert variant="destructive">

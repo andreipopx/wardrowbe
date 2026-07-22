@@ -74,13 +74,13 @@ function ItemCard({
   };
 
   return (
-    <Card
-      className={`group overflow-hidden cursor-pointer transition-all ${
-        selected ? 'ring-2 ring-primary shadow-md' : 'hover:shadow-md'
+    <div
+      className={`group cursor-pointer card-editorial ${
+        selected ? 'ring-1 ring-primary' : ''
       }`}
       onClick={onClick}
     >
-      <div className="relative aspect-square bg-muted">
+      <div className="relative aspect-[3/4] bg-muted overflow-hidden img-zoom">
         {item.thumbnail_url ? (
           <Image
             src={item.thumbnail_url}
@@ -160,16 +160,15 @@ function ItemCard({
           </div>
         )}
       </div>
-      <CardContent className="p-3">
+      <div className="pt-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-sm truncate">
+            <p className="font-display text-base leading-tight truncate group-hover:text-primary transition-colors">
               {item.name || item.type}
             </p>
-            <p className="text-xs text-muted-foreground capitalize">
+            <p className="label-editorial mt-1 capitalize">
               {item.type}
-              {item.subtype && ` • ${item.subtype}`}
-              {item.tags?.logprobs_confidence != null && ` · ${Math.round(item.tags.logprobs_confidence * 100)}% confident`}
+              {item.subtype && ` · ${item.subtype}`}
             </p>
           </div>
           {colorInfo && (
@@ -177,7 +176,7 @@ function ItemCard({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div
-                    className="w-4 h-4 rounded-full border shrink-0"
+                    className="w-3.5 h-3.5 border border-border-solid/60 shrink-0"
                     style={{ backgroundColor: colorInfo.hex }}
                   />
                 </TooltipTrigger>
@@ -189,45 +188,38 @@ function ItemCard({
           )}
         </div>
         {item.last_worn_at ? (
-          <p className={`text-xs mt-1 ${getWornAgoColorClass(item.last_worn_at, userTimezone)}`}>
+          <p className="label-editorial mt-2 text-muted-foreground">
             {formatWornAgo(item.last_worn_at, userTimezone)}
           </p>
         ) : item.wear_count > 0 ? (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="label-editorial mt-2 text-muted-foreground">
             {t('item.wornCount', { count: item.wear_count })}
           </p>
         ) : null}
-        {item.ai_confidence !== undefined && item.ai_confidence > 0 && item.status === 'ready' && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {t('aiCompleteness', { pct: Math.round(item.ai_confidence * 100) })}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
 function ItemCardSkeleton() {
   return (
-    <Card className="overflow-hidden">
-      <Skeleton className="aspect-square" />
-      <CardContent className="p-3">
+    <div>
+      <Skeleton className="aspect-[3/4] w-full" />
+      <div className="pt-3">
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-3 w-1/2 mt-1" />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
 function EmptyWardrobe({ onAddClick }: { onAddClick: () => void }) {
   const t = useTranslations('wardrobe');
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="rounded-full bg-muted p-6 mb-4">
-        <Grid3X3 className="h-12 w-12 text-muted-foreground" />
-      </div>
-      <h3 className="text-lg font-semibold mb-2">{t('emptyTitle')}</h3>
-      <p className="text-muted-foreground mb-6 max-w-sm">
+    <div className="flex flex-col items-center justify-center py-24 px-4 text-center border border-dashed border-border-solid/60">
+      <p className="label-editorial text-gold mb-4">{t('title')}</p>
+      <h3 className="font-display italic text-2xl mb-3">{t('emptyTitle')}</h3>
+      <p className="font-editorial italic text-lg text-muted-foreground mb-8 max-w-sm">
         {t('emptyBody')}
       </p>
       <Button onClick={onAddClick}>
@@ -422,40 +414,43 @@ export default function WardrobePage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex items-center justify-between sm:justify-start gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">{t('myTitle')}</h1>
-            <Button onClick={() => setAddDialogOpen(true)} className="sm:hidden" size="sm">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {t('itemCount', { count: total })}
-          </p>
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10 py-10 sm:py-14 space-y-10">
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 space-y-3">
+          <p className="label-editorial text-gold">{t('title')}</p>
+          <h1 className="font-display italic font-black text-display-lg leading-none">
+            {t('myTitle')}
+          </h1>
+          <p className="label-editorial">{t('itemCount', { count: total })}</p>
           {(processingCount > 0 || errorCount > 0) && (
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-3 pt-1">
               {processingCount > 0 && (
-                <Badge variant="secondary" className="gap-1 text-xs">
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                <span className="label-editorial flex items-center gap-2">
+                  <Loader2 className="h-3 w-3 animate-spin" strokeWidth={1.5} />
                   {t('processingBadge', { count: processingCount })}
-                </Badge>
+                </span>
               )}
               {errorCount > 0 && (
-                <Badge variant="destructive" className="gap-1 text-xs">
-                  <AlertCircle className="h-3 w-3" />
+                <span className="label-editorial text-primary flex items-center gap-2">
+                  <AlertCircle className="h-3 w-3" strokeWidth={1.5} />
                   {t('errorBadge', { count: errorCount })}
-                </Badge>
+                </span>
               )}
             </div>
           )}
         </div>
-        <Button onClick={() => setAddDialogOpen(true)} className="hidden sm:flex">
-          <Plus className="mr-2 h-4 w-4" />
-          {t('addItem')}
-        </Button>
-      </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setAddDialogOpen(true)}
+            className="h-11 px-6 bg-primary text-primary-foreground border border-primary uppercase tracking-widest text-xs hover:bg-transparent hover:text-primary transition-all duration-200 ease-editorial inline-flex items-center gap-2"
+          >
+            <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
+            {t('addItem')}
+          </button>
+        </div>
+      </header>
+
+      <div className="divider-hairline" />
 
       <div className="space-y-3">
         {/* Main row: search + sort + filter toggle */}
@@ -610,7 +605,7 @@ export default function WardrobePage() {
           </Button>
         </div>
       ) : isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
           {Array.from({ length: 10 }).map((_, i) => (
             <ItemCardSkeleton key={i} />
           ))}
@@ -638,7 +633,7 @@ export default function WardrobePage() {
           <EmptyWardrobe onAddClick={() => setAddDialogOpen(true)} />
         )
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-20">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6 pb-20">
           {items.map((item) => {
             // Determine if item is selected based on selection mode
             const isSelected = selection.mode === 'all'

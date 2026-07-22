@@ -19,7 +19,7 @@ export function MobileNav() {
   const t = useTranslations('nav');
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background lg:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-solid/40 bg-background/95 backdrop-blur-sm lg:hidden">
       <div className="flex h-16 items-center justify-around">
         {items.map((item) => {
           const isActive = item.href === '/dashboard'
@@ -30,14 +30,14 @@ export function MobileNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center gap-1 px-3 py-2 text-xs',
-                isActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                'flex flex-col items-center gap-1.5 px-3 py-2 min-h-[44px] transition-colors duration-200 ease-editorial',
+                isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'
               )}
             >
-              <item.icon className="h-5 w-5" aria-hidden="true" />
-              <span>{t(item.key)}</span>
+              <item.icon className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+              <span className={cn('text-[10px] uppercase tracking-widest', isActive && 'font-medium')}>
+                {t(item.key)}
+              </span>
             </Link>
           );
         })}

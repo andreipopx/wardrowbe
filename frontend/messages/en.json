@@ -64,7 +64,7 @@
   },
   "login": {
     "brand": "wardrowbe",
-    "tagline": "Sign in to manage your wardrobe",
+    "tagline": "Your wardrobe, styled as an editorial.",
     "backendErrorTitle": "Backend Configuration Error",
     "backendErrorDefault": "Unable to connect to backend server. Please check that the backend is running.",
     "notConfiguredTitle": "No authentication method configured",
@@ -189,6 +189,29 @@
   "dashboard": {
     "welcome": "Welcome back, {name}",
     "welcomeSubtitle": "Here's what's happening with your wardrobe",
+    "editorial": {
+      "outfitOfTheDay": "Outfit of the day",
+      "stylistWorking": "The stylist is at work…",
+      "stylistWorkingBody": "Give us a moment. A look, tailored for today, is being put together.",
+      "sectionWardrobe": "Your wardrobe",
+      "sectionOutfits": "Saved looks",
+      "sectionLibrary": "The book",
+      "wardrobeCount": "{count, plural, one {# piece} other {# pieces}} in rotation",
+      "wardrobeEmpty": "Nothing to show — yet.",
+      "wardrobeEmptyCta": "Add the first piece",
+      "outfitsEmpty": "No looks saved.",
+      "outfitsEmptyCta": "Ask the stylist",
+      "libraryEmpty": "The book is empty.",
+      "libraryEmptyCta": "See history",
+      "browseWardrobe": "Browse the wardrobe",
+      "browseOutfits": "Browse the looks",
+      "browseLibrary": "Open the book",
+      "editorialGreeting": {
+        "morning": "Good morning",
+        "afternoon": "Good afternoon",
+        "evening": "Good evening"
+      }
+    },
     "weather": {
       "title": "Today's Weather",
       "locationNotSet": "Location not set yet",
@@ -345,7 +368,12 @@
     }
   },
   "suggest": {
-    "title": "Suggest an outfit",
+    "title": "The Stylist",
+    "editorialSubtitle": "One look, considered for today.",
+    "editorialSuggestFrame": "Today's proposal",
+    "editorialWeather": "Weather",
+    "editorialOccasion": "Occasion",
+    "editorialNotes": "Stylist's note",
     "subtitle": "Tell us what you're up to and we'll put something together",
     "occasionLabel": "Occasion",
     "occasionPlaceholder": "Choose an occasion",

@@ -1,11 +1,11 @@
 'use client';
 
-import { Menu, Moon, Sun, LogOut } from 'lucide-react';
+import Link from 'next/link';
+import { Menu, LogOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { signOut } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { LanguageSwitcher } from '@/components/language-switcher';
 
@@ -18,70 +18,66 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const t = useTranslations('common');
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
-  const handleLogout = () => {
-    signOut({ callbackUrl: '/login' });
-  };
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+  const handleLogout = () => signOut({ callbackUrl: '/login' });
 
   const getInitials = (name?: string | null) => {
-    if (!name) return '?';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    if (!name) return '·';
+    return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-      <button
-        type="button"
-        className="-m-2.5 p-2.5 text-muted-foreground lg:hidden"
-        onClick={onMenuClick}
-      >
-        <span className="sr-only">{t('openSidebar')}</span>
-        <Menu className="h-6 w-6" aria-hidden="true" />
-      </button>
+    <header className="sticky top-0 z-40 border-b border-border-solid/40 bg-background/85 backdrop-blur-sm">
+      <div className="flex h-16 items-center gap-x-3 px-4 sm:gap-x-5 sm:px-6 lg:px-10">
+        {/* Mobile menu */}
+        <button
+          type="button"
+          className="-m-2.5 p-2.5 text-muted-foreground hover:text-primary transition-colors lg:hidden"
+          onClick={onMenuClick}
+          aria-label={t('openSidebar')}
+        >
+          <Menu className="h-5 w-5" aria-hidden="true" strokeWidth={1.5} />
+        </button>
 
-      <div className="h-6 w-px bg-border lg:hidden" aria-hidden="true" />
+        {/* Wordmark — visible on mobile only (sidebar carries it on desktop) */}
+        <Link href="/dashboard" className="lg:hidden font-display italic font-black text-xl text-foreground">
+          wardrowbe
+        </Link>
 
-      <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-        <div className="flex flex-1" />
-        <div className="flex items-center gap-x-2 sm:gap-x-3 lg:gap-x-4">
+        <div className="flex flex-1 items-center justify-end gap-x-3 sm:gap-x-5">
           <LanguageSwitcher variant="compact" />
 
-          <Button
-            variant="ghost"
-            size="icon"
+          <div className="h-4 w-px bg-border-solid/60" aria-hidden="true" />
+
+          <button
+            type="button"
             onClick={toggleTheme}
             aria-label={t('toggleTheme')}
+            className="label-editorial hover:text-primary transition-colors duration-200 ease-editorial h-9 px-2"
           >
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          </Button>
+            {theme === 'dark' ? t('lightMode') : t('darkMode')}
+          </button>
 
-          <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-border" aria-hidden="true" />
+          <div className="hidden lg:block h-4 w-px bg-border-solid/60" aria-hidden="true" />
 
-          <div className="flex items-center gap-x-3 lg:gap-x-4">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.avatar_url || ''} alt={user?.display_name || ''} />
-              <AvatarFallback>{getInitials(user?.display_name)}</AvatarFallback>
+          <div className="flex items-center gap-x-3">
+            <Avatar className="h-8 w-8 rounded-none border border-border-solid/60">
+              <AvatarImage src={user?.avatar_url || ''} alt={user?.display_name || ''} className="rounded-none" />
+              <AvatarFallback className="rounded-none bg-transparent font-display text-sm">
+                {getInitials(user?.display_name)}
+              </AvatarFallback>
             </Avatar>
-            <span className="hidden text-sm font-semibold lg:block">
+            <span className="hidden lg:inline label-editorial">
               {user?.display_name || t('user')}
             </span>
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
+              type="button"
               onClick={handleLogout}
               aria-label={t('signOut')}
+              className="text-muted-foreground hover:text-primary transition-colors duration-200 ease-editorial"
             >
-              <LogOut className="h-5 w-5" />
-            </Button>
+              <LogOut className="h-4 w-4" strokeWidth={1.5} />
+            </button>
           </div>
         </div>
       </div>

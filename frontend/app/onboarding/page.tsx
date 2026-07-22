@@ -817,14 +817,22 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
+    <div className="min-h-screen bg-background">
+      {/* Top-right utility strip */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
         <LanguageSwitcher variant="compact" />
       </div>
-      <div className="max-w-4xl mx-auto">
+
+      {/* Editorial masthead */}
+      <div className="pt-8 sm:pt-12 pb-6 px-4 text-center">
+        <p className="font-display italic font-black text-lg text-foreground">wardrowbe</p>
+        <div className="h-px w-12 bg-gold mx-auto mt-3" />
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         {currentStep < STEPS.length && <StepIndicator currentStep={currentStep} />}
 
-        <div className="py-8">
+        <div className="py-8 sm:py-12">
           {currentStep === 0 && <WelcomeStep onNext={nextStep} />}
           {currentStep === 1 && <FamilyStep onNext={nextStep} onSkip={nextStep} />}
           {currentStep === 2 && (
@@ -840,11 +848,15 @@ export default function OnboardingPage() {
 
         {/* Navigation */}
         {currentStep > 0 && currentStep < STEPS.length && (
-          <div className="flex justify-center mt-4">
-            <Button variant="ghost" onClick={prevStep}>
-              <ChevronLeft className="mr-2 h-4 w-4" />
+          <div className="flex justify-center mt-8">
+            <button
+              type="button"
+              onClick={prevStep}
+              className="label-editorial link-editorial text-muted-foreground hover:text-primary flex items-center gap-2"
+            >
+              <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
               {tCommon('back')}
-            </Button>
+            </button>
           </div>
         )}
       </div>

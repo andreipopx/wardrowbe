@@ -551,29 +551,36 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground">
+    <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-10 py-10 sm:py-14 space-y-10">
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-3">
+          <p className="label-editorial text-gold">{t('title')}</p>
+          <h1 className="font-display italic font-black text-display-lg leading-none">
+            {t('title')}
+          </h1>
+          <p className="font-editorial italic text-lg text-muted-foreground">
             {t('header.manageSubtitle')}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleReset} disabled={resetPreferences.isPending}>
-            <RotateCcw className="mr-2 h-4 w-4" />
+        <div className="flex gap-3">
+          <button type="button" onClick={handleReset} disabled={resetPreferences.isPending}
+            className="h-11 px-5 border border-primary/70 text-primary uppercase tracking-widest text-xs hover:bg-primary hover:text-primary-foreground transition-all duration-200 ease-editorial disabled:opacity-50 inline-flex items-center gap-2">
+            <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.5} />
             {t('header.reset')}
-          </Button>
-          <Button size="sm" onClick={handleSave} disabled={!hasChanges || updatePreferences.isPending}>
+          </button>
+          <button type="button" onClick={handleSave} disabled={!hasChanges || updatePreferences.isPending}
+            className="h-11 px-5 bg-primary text-primary-foreground border border-primary uppercase tracking-widest text-xs hover:bg-transparent hover:text-primary transition-all duration-200 ease-editorial disabled:opacity-50 inline-flex items-center gap-2">
             {updatePreferences.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={1.5} />
             ) : (
-              <Save className="mr-2 h-4 w-4" />
+              <Save className="h-3.5 w-3.5" strokeWidth={1.5} />
             )}
             {tCommon('save')}
-          </Button>
+          </button>
         </div>
-      </div>
+      </header>
+
+      <div className="divider-gold" />
 
       <div className="grid gap-6">
         {/* Account Section */}

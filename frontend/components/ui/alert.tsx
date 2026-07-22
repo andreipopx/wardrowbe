@@ -3,14 +3,19 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
+// Editorial alert: warm cream card with a burgundy hairline on the left,
+// Playfair title. Reads like a magazine sidebar, not a system error.
 const alertVariants = cva(
-  'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
+  'relative w-full p-5 sm:p-6 bg-card [&>svg~*]:pl-8 [&>svg+div]:translate-y-[-2px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-5',
   {
     variants: {
       variant: {
-        default: 'bg-background text-foreground',
+        default:
+          'border-l-2 border-l-primary/60 border-y-0 border-r-0 [&>svg]:text-primary',
         destructive:
-          'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive',
+          'border-l-2 border-l-primary border-y-0 border-r-0 [&>svg]:text-primary text-foreground',
+        gold:
+          'border-l-2 border-l-gold border-y-0 border-r-0 [&>svg]:text-gold text-foreground',
       },
     },
     defaultVariants: {
@@ -38,7 +43,7 @@ const AlertTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h5
     ref={ref}
-    className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+    className={cn('font-display text-lg font-normal leading-tight mb-1.5', className)}
     {...props}
   />
 ));
@@ -50,7 +55,7 @@ const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('text-sm [&_p]:leading-relaxed', className)}
+    className={cn('text-sm text-muted-foreground [&_p]:leading-relaxed', className)}
     {...props}
   />
 ));

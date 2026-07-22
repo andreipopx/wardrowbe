@@ -64,7 +64,7 @@
   },
   "login": {
     "brand": "wardrowbe",
-    "tagline": "Inicia sesión para gestionar tu armario",
+    "tagline": "Tu armario, curado como una editorial.",
     "backendErrorTitle": "Error de configuración del backend",
     "backendErrorDefault": "No se puede conectar con el servidor. Verifica que el backend esté funcionando.",
     "notConfiguredTitle": "No hay método de autenticación configurado",
@@ -189,6 +189,29 @@
   "dashboard": {
     "welcome": "Bienvenido de nuevo, {name}",
     "welcomeSubtitle": "Esto es lo que pasa hoy en tu armario",
+    "editorial": {
+      "outfitOfTheDay": "Outfit del día",
+      "stylistWorking": "El estilista está trabajando…",
+      "stylistWorkingBody": "Danos un momento. Estamos preparando una propuesta pensada para hoy.",
+      "sectionWardrobe": "Tu armario",
+      "sectionOutfits": "Outfits guardados",
+      "sectionLibrary": "El libro",
+      "wardrobeCount": "{count, plural, one {# prenda} other {# prendas}} en rotación",
+      "wardrobeEmpty": "Aún no hay nada que enseñar.",
+      "wardrobeEmptyCta": "Añade la primera prenda",
+      "outfitsEmpty": "Sin outfits guardados.",
+      "outfitsEmptyCta": "Consulta al estilista",
+      "libraryEmpty": "El libro está vacío.",
+      "libraryEmptyCta": "Ver historial",
+      "browseWardrobe": "Ver el armario",
+      "browseOutfits": "Ver los outfits",
+      "browseLibrary": "Abrir el libro",
+      "editorialGreeting": {
+        "morning": "Buenos días",
+        "afternoon": "Buenas tardes",
+        "evening": "Buenas noches"
+      }
+    },
     "weather": {
       "title": "Clima de hoy",
       "locationNotSet": "Aún no has puesto tu ubicación",
@@ -345,7 +368,12 @@
     }
   },
   "suggest": {
-    "title": "Sugiere un conjunto",
+    "title": "El Estilista",
+    "editorialSubtitle": "Un look, pensado para hoy.",
+    "editorialSuggestFrame": "La propuesta del día",
+    "editorialWeather": "Clima",
+    "editorialOccasion": "Ocasión",
+    "editorialNotes": "Nota del estilista",
     "subtitle": "Cuéntanos qué vas a hacer y te preparamos algo",
     "occasionLabel": "Ocasión",
     "occasionPlaceholder": "Elige una ocasión",

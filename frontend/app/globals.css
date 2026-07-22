@@ -2,61 +2,165 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Editorial fashion palette — inspired by Vogue / AnOther Magazine.
+ * Values live as raw hex; tailwind config consumes them via var(--token).
+ */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 220.9 39.3% 11%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 224 71.4% 4.1%;
-    --radius: 0.5rem;
+    /* Light (default) — warm magazine cream */
+    --background: #F5EFE6;
+    --card: #FAF6EF;
+    --popover: #FAF6EF;
+    --foreground: #0A0A0A;
+    --muted: #EDE5D5;
+    --muted-foreground: #6B5D4F;
+    --accent: #EFE5D0;
+    --accent-foreground: #0A0A0A;
+    --primary: #7B1E1E;              /* burgundy */
+    --primary-foreground: #F5EFE6;
+    --secondary: #F0E6D2;
+    --secondary-foreground: #0A0A0A;
+    --editorial-gold: #B8860B;
+    --destructive: #7B1E1E;
+    --destructive-foreground: #F5EFE6;
+    --success: #4A5D31;
+    --warning: #A56A00;
+    --border: rgba(212, 201, 184, 0.55);
+    --border-solid: #D4C9B8;
+    --input: rgba(212, 201, 184, 0.55);
+    --ring: #7B1E1E;
+    --card-foreground: #0A0A0A;
+    --popover-foreground: #0A0A0A;
+    --radius: 0px;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --background: #0A0A0A;
+    --card: #141210;
+    --popover: #141210;
+    --foreground: #F5EFE6;
+    --muted: #1A1815;
+    --muted-foreground: #A89988;
+    --accent: #1A1815;
+    --accent-foreground: #F5EFE6;
+    --primary: #A02828;              /* burgundy luminous */
+    --primary-foreground: #F5EFE6;
+    --secondary: #1F1C18;
+    --secondary-foreground: #F5EFE6;
+    --editorial-gold: #D4A548;
+    --destructive: #A02828;
+    --destructive-foreground: #F5EFE6;
+    --success: #7D9256;
+    --warning: #D4A548;
+    --border: #3A3530;
+    --border-solid: #3A3530;
+    --input: #3A3530;
+    --ring: #A02828;
+    --card-foreground: #F5EFE6;
+    --popover-foreground: #F5EFE6;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--border);
   }
   html, body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
     overflow-x: hidden;
     max-width: 100vw;
+    font-family: var(--font-sans), 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'ss01', 'cv02', 'cv11';
+  }
+
+  h1, h2, h3, .display, .headline {
+    font-family: var(--font-display), 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+  h4, h5, h6 {
+    font-family: var(--font-sans), 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+}
+
+/* Editorial utility classes */
+@layer utilities {
+  .font-display { font-family: var(--font-display), 'Playfair Display', Georgia, serif; }
+  .font-editorial { font-family: var(--font-editorial), 'Cormorant Garamond', Georgia, serif; font-style: italic; }
+  .font-body { font-family: var(--font-sans), 'Inter', system-ui, sans-serif; }
+
+  /* Uppercase editorial label — for section headers, captions, metadata */
+  .label-editorial {
+    font-family: var(--font-sans), 'Inter', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--muted-foreground);
+  }
+
+  /* Hairline gold divider (horizontal) */
+  .divider-gold {
+    height: 1px;
+    background: var(--editorial-gold);
+    opacity: 0.6;
+    width: 100%;
+  }
+  .divider-hairline {
+    height: 1px;
+    background: var(--border-solid);
+    opacity: 0.45;
+    width: 100%;
+  }
+
+  /* Animated underline for editorial links */
+  .link-editorial {
+    position: relative;
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+  }
+  .link-editorial::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .link-editorial:hover::after,
+  .link-editorial:focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  /* Card that gently rises on hover */
+  .card-editorial {
+    transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 260ms;
+  }
+  .card-editorial:hover {
+    transform: translateY(-4px);
+  }
+
+  /* Image zoom on hover */
+  .img-zoom {
+    overflow: hidden;
+  }
+  .img-zoom > * {
+    transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .img-zoom:hover > * {
+    transform: scale(1.05);
   }
 }
 
@@ -67,7 +171,27 @@
   }
 }
 
-/* Prevent double-tap zoom on touch devices */
 html {
   touch-action: manipulation;
+}
+
+/* Sonner toast — editorial reskin */
+[data-sonner-toaster] {
+  --normal-bg: var(--card);
+  --normal-border: var(--border-solid);
+  --normal-text: var(--foreground);
+  --error-bg: var(--card);
+  --error-border: var(--primary);
+  --error-text: var(--foreground);
+  --success-bg: var(--card);
+  --success-border: var(--success);
+  --success-text: var(--foreground);
+}
+[data-sonner-toast] {
+  border-radius: 0 !important;
+  font-family: var(--font-sans), 'Inter', system-ui, sans-serif !important;
+}
+[data-sonner-toast] [data-title] {
+  font-family: var(--font-display), 'Playfair Display', Georgia, serif !important;
+  letter-spacing: -0.01em;
 }

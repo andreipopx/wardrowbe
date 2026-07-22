@@ -5,18 +5,31 @@ import { signIn, getProviders, useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useTheme } from 'next-themes';
 import { LanguageSwitcher } from '@/components/language-switcher';
+
+function ThemeButton() {
+  const { theme, setTheme } = useTheme();
+  const tCommon = useTranslations('common');
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      aria-label={tCommon('toggleTheme')}
+      className="h-9 min-w-[36px] px-2 label-editorial hover:text-primary transition-colors duration-200 ease-editorial"
+    >
+      {theme === 'dark' ? tCommon('lightMode') : tCommon('darkMode')}
+    </button>
+  );
+}
 
 function OIDCLoginButton({ callbackUrl }: { callbackUrl: string }) {
   const t = useTranslations('common');
   return (
     <button
       onClick={() => signIn('oidc', { callbackUrl })}
-      className="flex w-full items-center justify-center gap-3 rounded-md bg-primary px-4 py-3 text-primary-foreground hover:bg-primary/90 transition-colors"
+      className="w-full h-12 bg-primary text-primary-foreground border border-primary uppercase tracking-widest text-xs hover:bg-transparent hover:text-primary transition-all duration-200 ease-editorial"
     >
-      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-      </svg>
       {t('signIn')}
     </button>
   );
@@ -32,49 +45,45 @@ function DevLogin({ callbackUrl }: { callbackUrl: string }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await signIn('dev-credentials', {
-      email,
-      name,
-      callbackUrl,
-    });
+    await signIn('dev-credentials', { email, name, callbackUrl });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="rounded-md bg-yellow-500/10 border border-yellow-500/20 p-3 text-sm text-yellow-600 dark:text-yellow-400">
-        {t('devBanner')}
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="border-l-2 border-l-gold px-4 py-3 bg-card">
+        <p className="label-editorial text-gold">Preview</p>
+        <p className="font-editorial italic text-sm text-foreground mt-1">{t('devBanner')}</p>
       </div>
+
       <div className="space-y-2">
-        <label htmlFor="email" className="block text-sm font-medium">
-          {t('emailLabel')}
-        </label>
+        <label htmlFor="email" className="label-editorial block">{t('emailLabel')}</label>
         <input
           id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
           placeholder={t('emailPlaceholder')}
+          className="w-full h-11 border-0 border-b border-border-solid/60 bg-transparent px-1 py-2 text-base text-foreground font-body placeholder:font-editorial placeholder:italic placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary transition-colors duration-200 ease-editorial"
         />
       </div>
+
       <div className="space-y-2">
-        <label htmlFor="name" className="block text-sm font-medium">
-          {t('nameLabel')}
-        </label>
+        <label htmlFor="name" className="label-editorial block">{t('nameLabel')}</label>
         <input
           id="name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
           placeholder={t('namePlaceholder')}
+          className="w-full h-11 border-0 border-b border-border-solid/60 bg-transparent px-1 py-2 text-base text-foreground font-body placeholder:font-editorial placeholder:italic placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary transition-colors duration-200 ease-editorial"
         />
       </div>
+
       <button
         type="submit"
         disabled={isLoading}
-        className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 min-h-[44px]"
+        className="w-full h-12 bg-primary text-primary-foreground border border-primary uppercase tracking-widest text-xs hover:bg-transparent hover:text-primary transition-all duration-200 ease-editorial disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {isLoading ? (
           <>
@@ -89,12 +98,11 @@ function DevLogin({ callbackUrl }: { callbackUrl: string }) {
   );
 }
 
-function BackendError({ message }: { message: string }) {
-  const t = useTranslations('login');
+function EditorialAlert({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm space-y-2">
-      <p className="font-medium text-destructive">{t('backendErrorTitle')}</p>
-      <p className="text-destructive/90">{message}</p>
+    <div className="border-l-2 border-l-primary px-4 py-3 bg-card">
+      <p className="font-display text-base leading-tight mb-1">{title}</p>
+      <p className="text-sm text-muted-foreground">{body}</p>
     </div>
   );
 }
@@ -115,7 +123,6 @@ function LoginContent() {
     }
   }, [status, session?.accessToken, callbackUrl, router]);
 
-  // Check backend auth configuration on mount
   useEffect(() => {
     fetch('/api/v1/auth/status')
       .then((res) => res.json())
@@ -130,59 +137,56 @@ function LoginContent() {
   }, [t]);
 
   const syncError = syncErrorParam || session?.syncError;
-
   const [authMode, setAuthMode] = useState<'loading' | 'oidc' | 'dev' | 'unconfigured'>('loading');
 
   useEffect(() => {
     getProviders().then((providers) => {
-      if (providers?.['oidc']) {
-        setAuthMode('oidc');
-      } else if (providers?.['dev-credentials']) {
-        setAuthMode('dev');
-      } else {
-        setAuthMode('unconfigured');
-      }
+      if (providers?.['oidc']) setAuthMode('oidc');
+      else if (providers?.['dev-credentials']) setAuthMode('dev');
+      else setAuthMode('unconfigured');
     });
   }, []);
 
   if (status === 'loading' || authMode === 'loading') {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="h-12 bg-muted rounded-md" />
+        <div className="h-12 bg-muted" />
       </div>
     );
   }
 
   return (
     <>
-      {backendError && <BackendError message={backendError} />}
-
-      {!backendError && syncError && <BackendError message={syncError} />}
+      {backendError && <EditorialAlert title={t('backendErrorTitle')} body={backendError} />}
+      {!backendError && syncError && <EditorialAlert title={t('backendErrorTitle')} body={syncError} />}
 
       {error && !backendError && !syncError && (
-        <div className="rounded-md bg-destructive/15 p-4 text-sm text-destructive">
-          {error === 'OAuthSignin' && 'Error starting authentication'}
-          {error === 'OAuthCallback' && 'Error during authentication callback'}
-          {error === 'OAuthCreateAccount' && 'Error creating account'}
-          {error === 'Callback' && 'Error during callback'}
-          {error === 'CredentialsSignin' && 'Invalid credentials'}
-          {error === 'AccessDenied' && 'Access denied'}
-          {error === 'undefined' && 'No authentication provider is configured. Set OIDC_ISSUER_URL or enable DEV_MODE.'}
-          {!['OAuthSignin', 'OAuthCallback', 'OAuthCreateAccount', 'Callback', 'CredentialsSignin', 'AccessDenied', 'undefined'].includes(error) && 'An error occurred during sign in'}
-        </div>
+        <EditorialAlert
+          title={t('backendErrorTitle')}
+          body={
+            (error === 'OAuthSignin' && t('errorOAuthSignin')) ||
+            (error === 'OAuthCallback' && t('errorOAuthCallback')) ||
+            (error === 'OAuthCreateAccount' && t('errorOAuthCreateAccount')) ||
+            (error === 'Callback' && t('errorCallback')) ||
+            (error === 'CredentialsSignin' && t('errorCredentialsSignin')) ||
+            (error === 'AccessDenied' && t('errorAccessDenied')) ||
+            (error === 'undefined' && t('errorUndefined')) ||
+            t('errorGeneric')
+          }
+        />
       )}
 
       <div className="space-y-4">
         {authMode === 'oidc' && <OIDCLoginButton callbackUrl={callbackUrl} />}
         {authMode === 'dev' && <DevLogin callbackUrl={callbackUrl} />}
         {authMode === 'unconfigured' && (
-          <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm space-y-2">
-            <p className="font-medium text-destructive">{t('notConfiguredTitle')}</p>
-            <p className="text-destructive/90">
+          <div className="border-l-2 border-l-primary px-4 py-4 bg-card">
+            <p className="font-display text-lg leading-tight mb-2">{t('notConfiguredTitle')}</p>
+            <p className="text-sm text-muted-foreground">
               {t.rich('notConfiguredHint', {
-                oidc: () => <code className="font-mono">OIDC_ISSUER_URL</code>,
-                clientId: () => <code className="font-mono">OIDC_CLIENT_ID</code>,
-                devMode: () => <code className="font-mono">DEV_MODE=true</code>,
+                oidc: () => <code className="font-mono text-xs">OIDC_ISSUER_URL</code>,
+                clientId: () => <code className="font-mono text-xs">OIDC_CLIENT_ID</code>,
+                devMode: () => <code className="font-mono text-xs">DEV_MODE=true</code>,
               })}
             </p>
           </div>
@@ -195,24 +199,36 @@ function LoginContent() {
 export default function LoginPage() {
   const t = useTranslations('login');
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <img src="/logo.svg" alt="Wardrowbe" className="h-16 w-16" />
+    <main className="min-h-screen bg-background text-foreground">
+      {/* Top-right utility strip */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-3 z-10">
+        <LanguageSwitcher variant="compact" />
+        <div className="h-4 w-px bg-border-solid/60" />
+        <ThemeButton />
+      </div>
+
+      <div className="flex min-h-screen flex-col items-center justify-center px-6 py-16">
+        <div className="w-full max-w-md">
+          {/* Wordmark */}
+          <header className="text-center mb-4">
+            <h1 className="font-display italic font-black text-display-2xl leading-none">
+              wardrowbe
+            </h1>
+            <div className="h-px w-16 bg-gold mx-auto mt-6" />
+            <p className="font-editorial italic text-xl text-muted-foreground mt-6">
+              {t('tagline')}
+            </p>
+          </header>
+
+          <div className="mt-14 space-y-6">
+            <Suspense fallback={<div className="animate-pulse h-12 bg-muted" />}>
+              <LoginContent />
+            </Suspense>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('brand')}</h1>
-          <p className="mt-2 text-muted-foreground">{t('tagline')}</p>
-        </div>
 
-        <Suspense fallback={<div className="space-y-4 animate-pulse"><div className="h-12 bg-muted rounded-md" /></div>}>
-          <LoginContent />
-        </Suspense>
-
-        <p className="text-center text-sm text-muted-foreground">{t('terms')}</p>
-
-        <div className="flex justify-center pt-2">
-          <LanguageSwitcher />
+          <footer className="mt-16 text-center">
+            <p className="label-editorial">{t('terms')}</p>
+          </footer>
         </div>
       </div>
     </main>

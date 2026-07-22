@@ -1,13 +1,14 @@
 {
   "name": "Wardrowbe",
   "short_name": "Wardrowbe",
-  "description": "AI-powered wardrobe management and outfit recommendations",
+  "description": "Tu armario, curado como una editorial.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#0f172a",
+  "background_color": "#F5EFE6",
+  "theme_color": "#7B1E1E",
   "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "/icon-256.png", "sizes": "256x256", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
