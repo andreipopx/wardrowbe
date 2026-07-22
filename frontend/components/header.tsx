@@ -3,9 +3,11 @@
 import { Menu, Moon, Sun, LogOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { signOut } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -14,6 +16,7 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
+  const t = useTranslations('common');
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -40,7 +43,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         className="-m-2.5 p-2.5 text-muted-foreground lg:hidden"
         onClick={onMenuClick}
       >
-        <span className="sr-only">Open sidebar</span>
+        <span className="sr-only">{t('openSidebar')}</span>
         <Menu className="h-6 w-6" aria-hidden="true" />
       </button>
 
@@ -48,12 +51,14 @@ export function Header({ onMenuClick }: HeaderProps) {
 
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <div className="flex flex-1" />
-        <div className="flex items-center gap-x-4 lg:gap-x-6">
+        <div className="flex items-center gap-x-2 sm:gap-x-3 lg:gap-x-4">
+          <LanguageSwitcher variant="compact" />
+
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            aria-label="Toggle theme"
+            aria-label={t('toggleTheme')}
           >
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -61,19 +66,19 @@ export function Header({ onMenuClick }: HeaderProps) {
 
           <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-border" aria-hidden="true" />
 
-          <div className="flex items-center gap-x-4">
+          <div className="flex items-center gap-x-3 lg:gap-x-4">
             <Avatar className="h-8 w-8">
               <AvatarImage src={user?.avatar_url || ''} alt={user?.display_name || ''} />
               <AvatarFallback>{getInitials(user?.display_name)}</AvatarFallback>
             </Avatar>
             <span className="hidden text-sm font-semibold lg:block">
-              {user?.display_name || 'User'}
+              {user?.display_name || t('user')}
             </span>
             <Button
               variant="ghost"
               size="icon"
               onClick={handleLogout}
-              aria-label="Sign out"
+              aria-label={t('signOut')}
             >
               <LogOut className="h-5 w-5" />
             </Button>

@@ -22,6 +22,8 @@ export function useFamily() {
     queryFn: () => api.get<Family>('/families/me'),
     enabled: status !== 'loading',
     retry: false, // Don't retry on 404 (user not in family)
+    // No-family is a legitimate first-login state — surface in-place, not as a toast.
+    meta: { silent404: true },
   });
 }
 

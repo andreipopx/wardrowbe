@@ -18,31 +18,33 @@ import { OutfitHistoryCard } from '@/components/outfit-history-card';
 import { FeedbackDialog } from '@/components/feedback-dialog';
 import { OutfitPreviewDialog } from '@/components/outfit-preview-dialog';
 import { format, isSameDay, parseISO } from 'date-fns';
+import { useTranslations } from 'next-intl';
 
 function EmptyHistory() {
+  const t = useTranslations('history');
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
       <div className="rounded-full bg-muted p-6 mb-4">
         <Calendar className="h-12 w-12 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-semibold mb-2">No recommendation history</h3>
+      <h3 className="text-lg font-semibold mb-2">{t('emptyTitle')}</h3>
       <p className="text-muted-foreground mb-6 max-w-sm">
-        Your outfit recommendation history will appear here once you start
-        receiving suggestions.
+        {t('emptyBody')}
       </p>
       <Button variant="outline" asChild>
-        <a href="/dashboard/suggest">Get Your First Suggestion</a>
+        <a href="/dashboard/suggest">{t('getFirstSuggestion')}</a>
       </Button>
     </div>
   );
 }
 
 function EmptyDate({ date }: { date: Date }) {
+  const t = useTranslations('history');
   return (
     <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
       <Calendar className="h-8 w-8 text-muted-foreground mb-2" />
       <p className="text-sm text-muted-foreground">
-        No outfits for {format(date, 'MMMM d, yyyy')}
+        {t('noOutfitsForDate', { date: format(date, 'MMMM d, yyyy') })}
       </p>
     </div>
   );
@@ -91,6 +93,7 @@ function CalendarSkeleton() {
 }
 
 export default function HistoryPage() {
+  const t = useTranslations('history');
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -131,7 +134,7 @@ export default function HistoryPage() {
   if (isError) {
     return (
       <div className="text-center py-8 text-red-500">
-        Failed to load history. Please try again.
+        {t('loadError')}
       </div>
     );
   }
@@ -141,9 +144,9 @@ export default function HistoryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">History</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            View your past outfit recommendations
+            {t('subtitle')}
           </p>
         </div>
       </div>
@@ -152,27 +155,27 @@ export default function HistoryPage() {
       <div className="flex gap-3 flex-wrap">
         <Select value={filters.occasion || 'all'} onValueChange={handleOccasionChange}>
           <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="All occasions" />
+            <SelectValue placeholder={t('allOccasions')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All occasions</SelectItem>
-            <SelectItem value="casual">Casual</SelectItem>
-            <SelectItem value="office">Office</SelectItem>
-            <SelectItem value="formal">Formal</SelectItem>
-            <SelectItem value="date">Date</SelectItem>
-            <SelectItem value="workout">Workout</SelectItem>
+            <SelectItem value="all">{t('allOccasions')}</SelectItem>
+            <SelectItem value="casual">{t('occasions.casual')}</SelectItem>
+            <SelectItem value="office">{t('occasions.office')}</SelectItem>
+            <SelectItem value="formal">{t('occasions.formal')}</SelectItem>
+            <SelectItem value="date">{t('occasions.date')}</SelectItem>
+            <SelectItem value="workout">{t('occasions.workout')}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
           <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="All status" />
+            <SelectValue placeholder={t('allStatus')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All status</SelectItem>
-            <SelectItem value="accepted">Accepted</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="viewed">Viewed</SelectItem>
+            <SelectItem value="all">{t('allStatus')}</SelectItem>
+            <SelectItem value="accepted">{t('status.accepted')}</SelectItem>
+            <SelectItem value="rejected">{t('status.rejected')}</SelectItem>
+            <SelectItem value="pending">{t('status.pending')}</SelectItem>
+            <SelectItem value="viewed">{t('status.viewed')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -206,7 +209,7 @@ export default function HistoryPage() {
                 {format(selectedDate, 'EEEE, MMMM d')}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {selectedDateOutfits.length} outfit{selectedDateOutfits.length !== 1 ? 's' : ''}
+                {t('outfitCount', { count: selectedDateOutfits.length })}
               </p>
             </div>
           )}

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 
 export default function GlobalError({
@@ -11,6 +12,8 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations('errors');
+
   useEffect(() => {
     console.error('Application error:', error);
   }, [error]);
@@ -21,16 +24,13 @@ export default function GlobalError({
         <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
           <AlertTriangle className="w-8 h-8 text-destructive" />
         </div>
-        <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
-        <p className="text-muted-foreground mb-6">
-          An unexpected error occurred. Please try again or contact support if
-          the problem persists.
-        </p>
+        <h1 className="text-2xl font-bold mb-2">{t('boundaryTitle')}</h1>
+        <p className="text-muted-foreground mb-6">{t('boundaryBody')}</p>
         <div className="flex gap-3 justify-center">
           <Button variant="outline" onClick={() => window.location.href = '/'}>
-            Go Home
+            {t('goHome')}
           </Button>
-          <Button onClick={reset}>Try Again</Button>
+          <Button onClick={reset}>{t('tryAgain')}</Button>
         </div>
         {process.env.NODE_ENV === 'development' && (
           <pre className="mt-6 p-4 bg-muted rounded-lg text-left text-xs overflow-auto max-h-48">

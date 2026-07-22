@@ -3,26 +3,27 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { X, Home, Shirt, Sparkles, Layers, LayoutGrid, History, BarChart3, Brain, Settings, Users, Bell, HeartHandshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Wardrobe', href: '/dashboard/wardrobe', icon: Shirt },
-  { name: 'Suggest Outfit', href: '/dashboard/suggest', icon: Sparkles },
-  { name: 'Outfits', href: '/dashboard/outfits', icon: LayoutGrid },
-  { name: 'Pairings', href: '/dashboard/pairings', icon: Layers },
-  { name: 'History', href: '/dashboard/history', icon: History },
-  { name: 'Family Feed', href: '/dashboard/family/feed', icon: HeartHandshake },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
-  { name: 'AI Learning', href: '/dashboard/learning', icon: Brain },
-];
+const primaryItems = [
+  { key: 'dashboard', href: '/dashboard', icon: Home },
+  { key: 'wardrobe', href: '/dashboard/wardrobe', icon: Shirt },
+  { key: 'suggest', href: '/dashboard/suggest', icon: Sparkles },
+  { key: 'outfits', href: '/dashboard/outfits', icon: LayoutGrid },
+  { key: 'pairings', href: '/dashboard/pairings', icon: Layers },
+  { key: 'history', href: '/dashboard/history', icon: History },
+  { key: 'family', href: '/dashboard/family/feed', icon: HeartHandshake },
+  { key: 'analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { key: 'learning', href: '/dashboard/learning', icon: Brain },
+] as const;
 
-const secondaryNavigation = [
-  { name: 'Family', href: '/dashboard/family', icon: Users },
-  { name: 'Notifications', href: '/dashboard/notifications', icon: Bell },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-];
+const secondaryItems = [
+  { key: 'family', href: '/dashboard/family', icon: Users },
+  { key: 'notifications', href: '/dashboard/notifications', icon: Bell },
+  { key: 'settings', href: '/dashboard/settings', icon: Settings },
+] as const;
 
 interface MobileSidebarProps {
   open: boolean;
@@ -31,8 +32,9 @@ interface MobileSidebarProps {
 
 export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
   const pathname = usePathname();
+  const tNav = useTranslations('nav');
+  const tCommon = useTranslations('common');
 
-  // Close on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -49,7 +51,6 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
 
   return (
     <div className={cn('lg:hidden', !open && 'pointer-events-none')}>
-      {/* Backdrop */}
       <div
         className={cn(
           'fixed inset-0 z-50 bg-black/50 transition-opacity duration-300',
@@ -58,20 +59,18 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
         onClick={onClose}
       />
 
-      {/* Sidebar panel */}
       <div
         className={cn(
           'fixed inset-y-0 left-0 z-50 w-72 bg-card transition-transform duration-300 ease-in-out',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* Close button */}
         <button
           type="button"
           className="absolute right-4 top-4 p-2 text-muted-foreground hover:text-foreground"
           onClick={onClose}
         >
-          <span className="sr-only">Close sidebar</span>
+          <span className="sr-only">{tCommon('close')}</span>
           <X className="h-6 w-6" />
         </button>
 
@@ -86,12 +85,12 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
               <li>
                 <ul role="list" className="-mx-2 space-y-1">
-                  {navigation.map((item) => {
+                  {primaryItems.map((item) => {
                     const isActive = item.href === '/dashboard'
                       ? pathname === '/dashboard'
                       : pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
-                      <li key={item.name}>
+                      <li key={item.href}>
                         <Link
                           href={item.href}
                           onClick={onClose}
@@ -103,7 +102,7 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                           )}
                         >
                           <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                          {item.name}
+                          {tNav(item.key)}
                         </Link>
                       </li>
                     );
@@ -112,17 +111,17 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
               </li>
               <li>
                 <div className="text-xs font-semibold leading-6 text-muted-foreground">
-                  Settings
+                  {tCommon('settings')}
                 </div>
                 <ul role="list" className="-mx-2 mt-2 space-y-1">
-                  {secondaryNavigation.map((item) => {
+                  {secondaryItems.map((item) => {
                     const matchesPath = pathname === item.href || pathname.startsWith(item.href + '/');
-                    const claimedByPrimary = navigation.some(
+                    const claimedByPrimary = primaryItems.some(
                       (primary) => pathname === primary.href || pathname.startsWith(primary.href + '/')
                     );
                     const isActive = matchesPath && !claimedByPrimary;
                     return (
-                      <li key={item.name}>
+                      <li key={item.href}>
                         <Link
                           href={item.href}
                           onClick={onClose}
@@ -134,7 +133,7 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                           )}
                         >
                           <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                          {item.name}
+                          {tNav(item.key)}
                         </Link>
                       </li>
                     );

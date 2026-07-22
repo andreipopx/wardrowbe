@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import {
   Briefcase,
   Shirt,
@@ -69,33 +70,27 @@ function getWeatherIcon(condition: string, isDay: boolean) {
   return isDay ? <Sun className="h-8 w-8" /> : <Cloud className="h-8 w-8" />;
 }
 
-// Get time-based greeting
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
-}
-
-// Get weather-based outfit hint
-function getWeatherHint(weather: Weather): string {
-  const temp = weather.temperature;
-  const condition = weather.condition.toLowerCase();
-
-  if (weather.precipitation_chance > 50) return 'Bring an umbrella or rain jacket';
-  if (temp < 10) return 'Layer up - it\'s quite cold';
-  if (temp < 18) return 'A light jacket would be perfect';
-  if (temp > 28) return 'Keep it light and breathable';
-  if (condition.includes('wind')) return 'Consider something windproof';
-  return 'Great weather for any style';
-}
-
 interface WeatherOverride {
   temperature: number;
   condition: 'sunny' | 'cloudy' | 'rainy';
 }
 
 function WeatherCard({ weather, isLoading, temperatureUnit }: { weather?: Weather; isLoading: boolean; temperatureUnit: TempUnit }) {
+  const t = useTranslations('suggest');
+
+  // Get weather-based outfit hint
+  const getWeatherHint = (w: Weather): string => {
+    const temp = w.temperature;
+    const condition = w.condition.toLowerCase();
+
+    if (w.precipitation_chance > 50) return t('weatherHintRain');
+    if (temp < 10) return t('weatherHintCold');
+    if (temp < 18) return t('weatherHintCool');
+    if (temp > 28) return t('weatherHintHot');
+    if (condition.includes('wind')) return t('weatherHintWind');
+    return t('weatherHintDefault');
+  };
+
   if (isLoading) {
     return (
       <Card className="border-muted">
@@ -121,9 +116,9 @@ function WeatherCard({ weather, isLoading, temperatureUnit }: { weather?: Weathe
               <MapPin className="h-6 w-6 text-muted-foreground" />
             </div>
             <div>
-              <p className="font-medium">Location not set</p>
+              <p className="font-medium">{t('locationNotSetTitle')}</p>
               <p className="text-sm text-muted-foreground">
-                Set your location in settings for weather-aware suggestions
+                {t('locationNotSetShortBody')}
               </p>
             </div>
           </div>
@@ -151,15 +146,15 @@ function WeatherCard({ weather, isLoading, temperatureUnit }: { weather?: Weathe
           <div className="text-right text-sm text-muted-foreground space-y-1">
             <div className="flex items-center gap-1.5 justify-end">
               <Thermometer className="h-3.5 w-3.5" />
-              <span>Feels {displayValue(weather.feels_like, temperatureUnit)}°</span>
+              <span>{t('feelsShort', { temp: displayValue(weather.feels_like, temperatureUnit) })}</span>
             </div>
             <div className="flex items-center gap-1.5 justify-end">
               <Droplets className="h-3.5 w-3.5" />
-              <span>{weather.precipitation_chance}% rain</span>
+              <span>{t('rainChanceShort', { pct: weather.precipitation_chance })}</span>
             </div>
             <div className="flex items-center gap-1.5 justify-end">
               <Wind className="h-3.5 w-3.5" />
-              <span>{Math.round(weather.wind_speed)} km/h</span>
+              <span>{t('windSpeed', { value: Math.round(weather.wind_speed) })}</span>
             </div>
           </div>
         </div>
@@ -180,6 +175,7 @@ function OccasionChips({
   selected: string | null;
   onSelect: (occasion: string) => void;
 }) {
+  const t = useTranslations('suggest');
   return (
     <div className="flex flex-wrap gap-2">
       {OCCASIONS.map((occasion) => {
@@ -197,7 +193,7 @@ function OccasionChips({
             )}
           >
             {config?.icon}
-            <span className="text-sm font-medium">{occasion.label}</span>
+            <span className="text-sm font-medium">{t(`occasions.${occasion.value}` as any)}</span>
           </button>
         );
       })}
@@ -214,11 +210,12 @@ function WeatherOverrideSection({
   onChange: (weather: WeatherOverride | null) => void;
   temperatureUnit: TempUnit;
 }) {
+  const t = useTranslations('suggest');
   const [isOpen, setIsOpen] = useState(false);
   const conditions = [
-    { value: 'sunny', icon: <Sun className="h-4 w-4" />, label: 'Sunny' },
-    { value: 'cloudy', icon: <Cloud className="h-4 w-4" />, label: 'Cloudy' },
-    { value: 'rainy', icon: <CloudRain className="h-4 w-4" />, label: 'Rainy' },
+    { value: 'sunny', icon: <Sun className="h-4 w-4" />, label: t('conditionSunny') },
+    { value: 'cloudy', icon: <Cloud className="h-4 w-4" />, label: t('conditionCloudy') },
+    { value: 'rainy', icon: <CloudRain className="h-4 w-4" />, label: t('conditionRainy') },
   ] as const;
 
   return (
@@ -226,7 +223,7 @@ function WeatherOverrideSection({
       <CollapsibleTrigger asChild>
         <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ChevronDown className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')} />
-          <span>{weather ? 'Weather override active' : 'Override weather'}</span>
+          <span>{weather ? t('overrideActive') : t('overrideCta')}</span>
           {weather && (
             <Badge variant="secondary" className="text-xs">
               {weather.condition} {formatTemp(weather.temperature, temperatureUnit)}
@@ -237,10 +234,10 @@ function WeatherOverrideSection({
       <CollapsibleContent className="pt-4">
         <div className="space-y-4 p-4 rounded-lg bg-muted/50">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Condition</span>
+            <span className="text-sm font-medium">{t('overrideCondition')}</span>
             {weather && (
               <Button variant="ghost" size="sm" onClick={() => onChange(null)}>
-                Reset
+                {t('overrideReset')}
               </Button>
             )}
           </div>
@@ -268,7 +265,7 @@ function WeatherOverrideSection({
           </div>
           {weather && (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">Temperature</span>
+              <span className="text-sm text-muted-foreground">{t('overrideTemperature')}</span>
               <input
                 type="range"
                 min={temperatureUnit === 'fahrenheit' ? 14 : -10}
@@ -306,13 +303,14 @@ function OutfitResult({
   onTryAnother: () => void;
   onNewRequest: () => void;
 }) {
+  const t = useTranslations('suggest');
   return (
     <div className="space-y-6">
       {/* Header with occasion and new request */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="capitalize text-sm px-3 py-1">
-            {occasion}
+            {t(`occasions.${occasion}` as any)}
           </Badge>
           {outfit.scheduled_for && (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
@@ -322,7 +320,7 @@ function OutfitResult({
           )}
         </div>
         <Button variant="ghost" size="sm" onClick={onNewRequest}>
-          Start over
+          {t('startOver')}
         </Button>
       </div>
 
@@ -332,11 +330,11 @@ function OutfitResult({
           <div className="flex items-center gap-1.5">
             <Thermometer className="h-4 w-4" />
             <span>{formatTemp(outfit.weather.temperature, temperatureUnit)}</span>
-            <span className="text-xs opacity-70">(feels {displayValue(outfit.weather.feels_like, temperatureUnit)}°)</span>
+            <span className="text-xs opacity-70">{t('feelsInline', { temp: displayValue(outfit.weather.feels_like, temperatureUnit) })}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Droplets className="h-4 w-4" />
-            <span>{outfit.weather.precipitation_chance}% rain</span>
+            <span>{t('rainChanceShort', { pct: outfit.weather.precipitation_chance })}</span>
           </div>
           <Badge variant="outline" className="capitalize">
             {outfit.weather.condition}
@@ -349,7 +347,7 @@ function OutfitResult({
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 border-b">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Your Outfit</h3>
+            <h3 className="font-semibold">{t('yourOutfit')}</h3>
           </div>
           {outfit.reasoning && (
             <p className="mt-2 text-base font-medium text-foreground">{outfit.reasoning}</p>
@@ -405,7 +403,7 @@ function OutfitResult({
           {outfit.style_notes && (
             <div className="mt-4 p-3 bg-muted rounded-lg border">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Tip:</span> {outfit.style_notes}
+                <span className="font-medium text-foreground">{t('tipLabel')}</span> {outfit.style_notes}
               </p>
             </div>
           )}
@@ -416,11 +414,11 @@ function OutfitResult({
       <div className="flex gap-3 justify-center">
         <Button variant="outline" size="lg" onClick={onTryAnother} className="gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Another
+          {t('tryAnother')}
         </Button>
         <Button size="lg" onClick={onAccept} className="gap-2">
           <ThumbsUp className="h-4 w-4" />
-          Love it
+          {t('loveIt')}
         </Button>
         <Button variant="ghost" size="lg" onClick={onReject} className="px-3">
           <ThumbsDown className="h-4 w-4" />
@@ -431,6 +429,7 @@ function OutfitResult({
 }
 
 export default function SuggestPage() {
+  const t = useTranslations('suggest');
   const { data: session } = useSession();
   const { data: weather, isLoading: weatherLoading } = useWeather();
   const { data: prefs } = usePreferences();
@@ -441,6 +440,14 @@ export default function SuggestPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [outfit, setOutfit] = useState<Outfit | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t('greetingMorning');
+    if (hour < 17) return t('greetingAfternoon');
+    return t('greetingEvening');
+  };
 
   useEffect(() => {
     if (prefs?.default_occasion && !occasionInitialized && !selectedOccasion) {
@@ -480,7 +487,7 @@ export default function SuggestPage() {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError('Failed to generate outfit suggestion. Please try again.');
+        setError(t('generateError'));
       }
       console.error('Suggestion error:', err);
     } finally {
@@ -538,7 +545,7 @@ export default function SuggestPage() {
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">{getGreeting()}</h1>
         <p className="text-muted-foreground">
-          Let&apos;s find the perfect outfit for your day
+          {t('pageSubtitle')}
         </p>
       </div>
 
@@ -559,7 +566,7 @@ export default function SuggestPage() {
             <CardContent className="p-6 space-y-6">
               {/* Occasion selection */}
               <div className="space-y-3">
-                <h2 className="font-semibold">What&apos;s the occasion?</h2>
+                <h2 className="font-semibold">{t('occasionsQuestion')}</h2>
                 <OccasionChips
                   selected={selectedOccasion}
                   onSelect={setSelectedOccasion}
@@ -584,12 +591,12 @@ export default function SuggestPage() {
                   {isGenerating ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      Creating your look...
+                      {t('creatingLook')}
                     </>
                   ) : (
                     <>
                       <Sparkles className="h-5 w-5" />
-                      Get Suggestion
+                      {t('getSuggestion')}
                     </>
                   )}
                 </Button>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import { Loader2, Save, RotateCcw, Check, Plus, Trash2, ChevronUp, ChevronDown, Server, MapPin, Navigation, Ruler } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,10 +55,10 @@ const BODY_MEASUREMENT_FIELDS = [
 ] as const;
 
 const SIZE_FIELDS = [
-  { key: 'shirt_size', label: 'Shirt Size', placeholder: 'e.g. M, L, XL' },
-  { key: 'pants_size', label: 'Pants Size', placeholder: 'e.g. 32, 34' },
-  { key: 'dress_size', label: 'Dress Size', placeholder: 'e.g. 8, 10' },
-  { key: 'shoe_size', label: 'Shoe Size', placeholder: 'e.g. 10, 42' },
+  { key: 'shirt_size', labelKey: 'shirtSize', placeholder: 'e.g. M, L, XL' },
+  { key: 'pants_size', labelKey: 'pantsSize', placeholder: 'e.g. 32, 34' },
+  { key: 'dress_size', labelKey: 'dressSize', placeholder: 'e.g. 8, 10' },
+  { key: 'shoe_size', labelKey: 'shoeSize', placeholder: 'e.g. 10, 42' },
 ] as const;
 
 function getErrorMessage(e: unknown, fallback: string): string {
@@ -177,6 +178,21 @@ export default function SettingsPage() {
   const testEndpoint = useTestAIEndpoint();
   const updateUserProfile = useUpdateUserProfile();
 
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+  const tLocation = useTranslations('settings.location');
+  const tMeasurements = useTranslations('settings.measurements');
+  const tFields = useTranslations('settings.measurements.fields');
+  const tColors = useTranslations('settings.colors');
+  const tStyleProfile = useTranslations('settings.styleProfile');
+  const tStyles = useTranslations('settings.styleProfile.styles');
+  const tComfort = useTranslations('settings.comfort');
+  const tPreferences = useTranslations('settings.preferences');
+  const tRecommendations = useTranslations('settings.recommendations');
+  const tAiEndpoints = useTranslations('settings.aiEndpoints');
+  const tAccount = useTranslations('settings.account');
+  const tTz = useTranslations('settings.location.timezones');
+
   const [formData, setFormData] = useState<Partial<Preferences>>({});
   const [hasChanges, setHasChanges] = useState(false);
   const [endpointTests, setEndpointTests] = useState<Record<number, EndpointTestResult>>({});
@@ -278,7 +294,7 @@ export default function SettingsPage() {
 
     const fallbackToNetworkLocation = async (reason?: string) => {
       if (!isNetworkLocationFallbackEnabled()) {
-        toast.error(reason || 'Unable to detect your location.');
+        toast.error(reason || tLocation('unableToDetect'));
         setIsGettingLocation(false);
         return;
       }
@@ -286,13 +302,13 @@ export default function SettingsPage() {
         await detectLocationFromNetwork();
         toast.success(
           reason
-            ? `${reason} Approximate location filled in. Review it, then save.`
-            : 'Approximate location filled in. Review it, then save.'
+            ? tLocation('approxFilledWithReason', { reason })
+            : tLocation('approxFilled')
         );
       } catch (fallbackError) {
         const fallbackMessage = fallbackError instanceof Error
           ? fallbackError.message
-          : 'Unable to detect your location';
+          : tLocation('unableToDetect');
         toast.error(fallbackMessage);
       } finally {
         setIsGettingLocation(false);
@@ -300,7 +316,7 @@ export default function SettingsPage() {
     };
 
     if (!navigator.geolocation) {
-      void fallbackToNetworkLocation('Geolocation is not supported by your browser.');
+      void fallbackToNetworkLocation(tLocation('notSupported'));
       return;
     }
 
@@ -312,7 +328,7 @@ export default function SettingsPage() {
         setLocationLon(lon);
         await finalizeFromCoordinates(lat, lon);
         setIsGettingLocation(false);
-        toast.success('Location detected. Review it, then save.');
+        toast.success(tLocation('detectedToast'));
       },
       (error) => {
         void fallbackToNetworkLocation(
@@ -328,17 +344,17 @@ export default function SettingsPage() {
     const lon = parseFloat(locationLon);
 
     if (isNaN(lat) || isNaN(lon)) {
-      toast.error('Please enter valid latitude and longitude values');
+      toast.error(tLocation('invalidLatLon'));
       return;
     }
 
     if (lat < -90 || lat > 90) {
-      toast.error('Latitude must be between -90 and 90');
+      toast.error(tLocation('latRange'));
       return;
     }
 
     if (lon < -180 || lon > 180) {
-      toast.error('Longitude must be between -180 and 180');
+      toast.error(tLocation('lonRange'));
       return;
     }
 
@@ -349,9 +365,9 @@ export default function SettingsPage() {
         location_name: locationName || undefined,
         timezone: timezone,
       });
-      toast.success('Location and timezone saved');
+      toast.success(tLocation('savedToast'));
     } catch {
-      toast.error('Failed to save location');
+      toast.error(tLocation('saveError'));
     }
   };
 
@@ -372,7 +388,7 @@ export default function SettingsPage() {
 
     const origPush = history.pushState.bind(history);
     history.pushState = function (...args) {
-      if (window.confirm('You have unsaved changes. Leave this page?')) {
+      if (window.confirm(t('header.unsavedChanges'))) {
         origPush(...args);
       }
     };
@@ -418,7 +434,14 @@ export default function SettingsPage() {
       if (numericKeys.includes(key)) {
         const num = parseFloat(trimmed);
         if (isNaN(num) || num <= 0) {
-          toast.error(`${key.charAt(0).toUpperCase() + key.slice(1)} must be a positive number`);
+          const fieldLabel = (() => {
+            try {
+              return tFields(key);
+            } catch {
+              return key.charAt(0).toUpperCase() + key.slice(1);
+            }
+          })();
+          toast.error(tMeasurements('mustBePositive', { field: fieldLabel }));
           return;
         }
         parsed[key] = convertMeasurement(num, key, unitSystem, 'metric');
@@ -431,9 +454,9 @@ export default function SettingsPage() {
         body_measurements: Object.keys(parsed).length > 0 ? parsed : null,
       });
       setMeasurementsDirty(false);
-      toast.success('Measurements saved');
+      toast.success(tMeasurements('saved'));
     } catch (e) {
-      toast.error(getErrorMessage(e, 'Failed to save measurements'));
+      toast.error(getErrorMessage(e, tMeasurements('saveError')));
     }
   };
 
@@ -454,7 +477,7 @@ export default function SettingsPage() {
     } catch (error) {
       setEndpointTests((prev) => ({
         ...prev,
-        [index]: { status: 'error', error: 'Failed to test endpoint' },
+        [index]: { status: 'error', error: tAiEndpoints('testFailed') },
       }));
     }
   };
@@ -510,7 +533,7 @@ export default function SettingsPage() {
   };
 
   const handleReset = async () => {
-    if (confirm('Reset all preferences to defaults?')) {
+    if (confirm(t('header.resetConfirm'))) {
       try {
         await resetPreferences.mutateAsync();
       } catch (error) {
@@ -531,15 +554,15 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your preferences and account settings
+            {t('header.manageSubtitle')}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handleReset} disabled={resetPreferences.isPending}>
             <RotateCcw className="mr-2 h-4 w-4" />
-            Reset
+            {t('header.reset')}
           </Button>
           <Button size="sm" onClick={handleSave} disabled={!hasChanges || updatePreferences.isPending}>
             {updatePreferences.isPending ? (
@@ -547,7 +570,7 @@ export default function SettingsPage() {
             ) : (
               <Save className="mr-2 h-4 w-4" />
             )}
-            Save
+            {tCommon('save')}
           </Button>
         </div>
       </div>
@@ -556,17 +579,17 @@ export default function SettingsPage() {
         {/* Account Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Account</CardTitle>
-            <CardDescription>Your profile information</CardDescription>
+            <CardTitle>{tAccount('title')}</CardTitle>
+            <CardDescription>{tAccount('description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Name</Label>
+                <Label>{tAccount('name')}</Label>
                 <Input value={userProfile?.display_name || ''} disabled />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label>{t('profile.email')}</Label>
                 <Input value={userProfile?.email || ''} disabled />
               </div>
             </div>
@@ -578,65 +601,65 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              Location
+              {tLocation('title')}
             </CardTitle>
             <CardDescription>
-              Set your location for weather-based outfit recommendations
+              {tLocation('description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>City / Location Name (optional)</Label>
+              <Label>{tLocation('cityLabel')}</Label>
               <Input
                 value={locationName}
                 onChange={(e) => setLocationName(e.target.value)}
-                placeholder="e.g., London, UK"
+                placeholder={tLocation('cityPlaceholder')}
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Latitude</Label>
+                <Label>{tLocation('latitude')}</Label>
                 <Input
                   type="number"
                   step="0.000001"
                   value={locationLat}
                   onChange={(e) => setLocationLat(e.target.value)}
-                  placeholder="e.g., 51.5074"
+                  placeholder={tLocation('latitudePlaceholder')}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Longitude</Label>
+                <Label>{tLocation('longitude')}</Label>
                 <Input
                   type="number"
                   step="0.000001"
                   value={locationLon}
                   onChange={(e) => setLocationLon(e.target.value)}
-                  placeholder="e.g., -0.1278"
+                  placeholder={tLocation('longitudePlaceholder')}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Timezone</Label>
+              <Label>{tLocation('timezone')}</Label>
               <Select value={timezone} onValueChange={setTimezone}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select timezone" />
+                  <SelectValue placeholder={tLocation('timezonePlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="UTC">UTC</SelectItem>
-                  <SelectItem value="America/New_York">Eastern Time (US)</SelectItem>
-                  <SelectItem value="America/Chicago">Central Time (US)</SelectItem>
-                  <SelectItem value="America/Denver">Mountain Time (US)</SelectItem>
-                  <SelectItem value="America/Los_Angeles">Pacific Time (US)</SelectItem>
-                  <SelectItem value="Europe/London">London (UK)</SelectItem>
-                  <SelectItem value="Europe/Paris">Paris (EU Central)</SelectItem>
-                  <SelectItem value="Europe/Berlin">Berlin (EU Central)</SelectItem>
-                  <SelectItem value="Asia/Tokyo">Tokyo (Japan)</SelectItem>
-                  <SelectItem value="Asia/Shanghai">Shanghai (China)</SelectItem>
-                  <SelectItem value="Asia/Kolkata">India (IST)</SelectItem>
-                  <SelectItem value="Asia/Kathmandu">Nepal (NPT)</SelectItem>
-                  <SelectItem value="Asia/Dubai">Dubai (UAE)</SelectItem>
-                  <SelectItem value="Australia/Sydney">Sydney (Australia)</SelectItem>
-                  <SelectItem value="Pacific/Auckland">Auckland (NZ)</SelectItem>
+                  <SelectItem value="UTC">{tTz('utc')}</SelectItem>
+                  <SelectItem value="America/New_York">{tTz('easternUS')}</SelectItem>
+                  <SelectItem value="America/Chicago">{tTz('centralUS')}</SelectItem>
+                  <SelectItem value="America/Denver">{tTz('mountainUS')}</SelectItem>
+                  <SelectItem value="America/Los_Angeles">{tTz('pacificUS')}</SelectItem>
+                  <SelectItem value="Europe/London">{tTz('londonUK')}</SelectItem>
+                  <SelectItem value="Europe/Paris">{tTz('parisEU')}</SelectItem>
+                  <SelectItem value="Europe/Berlin">{tTz('berlinEU')}</SelectItem>
+                  <SelectItem value="Asia/Tokyo">{tTz('tokyoJP')}</SelectItem>
+                  <SelectItem value="Asia/Shanghai">{tTz('shanghaiCN')}</SelectItem>
+                  <SelectItem value="Asia/Kolkata">{tTz('indiaIST')}</SelectItem>
+                  <SelectItem value="Asia/Kathmandu">{tTz('nepalNPT')}</SelectItem>
+                  <SelectItem value="Asia/Dubai">{tTz('dubaiUAE')}</SelectItem>
+                  <SelectItem value="Australia/Sydney">{tTz('sydneyAU')}</SelectItem>
+                  <SelectItem value="Pacific/Auckland">{tTz('aucklandNZ')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -651,7 +674,7 @@ export default function SettingsPage() {
                 ) : (
                   <Navigation className="h-4 w-4 mr-2" />
                 )}
-                Use My Location
+                {tLocation('useMyLocation')}
               </Button>
               <Button
                 onClick={handleSaveLocation}
@@ -662,12 +685,12 @@ export default function SettingsPage() {
                 ) : (
                   <Save className="h-4 w-4 mr-2" />
                 )}
-                Save Location
+                {tLocation('saveLocation')}
               </Button>
             </div>
             {!locationLat && !locationLon && (
               <p className="text-sm text-amber-600 dark:text-amber-400">
-                Location is required for weather-based outfit recommendations.
+                {tLocation('required')}
               </p>
             )}
           </CardContent>
@@ -678,27 +701,27 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Ruler className="h-5 w-5" />
-              Body Measurements
+              {tMeasurements('title')}
             </CardTitle>
-            <CardDescription>Help AI recommend better-fitting outfits</CardDescription>
+            <CardDescription>{tMeasurements('description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
-              <Label>Unit System</Label>
+              <Label>{tMeasurements('unitSystem')}</Label>
               <Button variant="outline" size="sm" onClick={handleToggleUnits}>
-                {unitSystem === 'metric' ? 'Metric (cm/kg)' : 'Imperial (in/lbs)'}
+                {unitSystem === 'metric' ? tMeasurements('metric') : tMeasurements('imperial')}
               </Button>
             </div>
 
             <div>
-              <Label className="text-muted-foreground mb-3 block">Body</Label>
+              <Label className="text-muted-foreground mb-3 block">{tMeasurements('body')}</Label>
               <div className="grid gap-3 sm:grid-cols-2">
                 {BODY_MEASUREMENT_FIELDS.map((field) => {
                   const unit = unitSystem === 'metric' ? field.unitMetric : field.unitImperial;
                   const placeholder = unitSystem === 'metric' ? field.placeholderMetric : field.placeholderImperial;
                   return (
                     <div key={field.key} className="space-y-1">
-                      <Label className="text-sm capitalize">{field.key}</Label>
+                      <Label className="text-sm">{tFields(field.key)}</Label>
                       <div className="flex items-center gap-2">
                         <Input
                           type="number"
@@ -718,11 +741,11 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <Label className="text-muted-foreground mb-3 block">Sizes</Label>
+              <Label className="text-muted-foreground mb-3 block">{tMeasurements('sizes')}</Label>
               <div className="grid gap-3 sm:grid-cols-2">
                 {SIZE_FIELDS.map((field) => (
                   <div key={field.key} className="space-y-1">
-                    <Label className="text-sm">{field.label}</Label>
+                    <Label className="text-sm">{tFields(field.labelKey)}</Label>
                     <Input
                       value={measurements[field.key] ?? ''}
                       onChange={(e) => handleMeasurementChange(field.key, e.target.value)}
@@ -740,9 +763,9 @@ export default function SettingsPage() {
                 size="sm"
               >
                 {updateUserProfile.isPending ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</>
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{tCommon('saving')}</>
                 ) : (
-                  <><Save className="mr-2 h-4 w-4" />Save Measurements</>
+                  <><Save className="mr-2 h-4 w-4" />{tMeasurements('save')}</>
                 )}
               </Button>
             )}
@@ -752,19 +775,19 @@ export default function SettingsPage() {
         {/* Color Preferences */}
         <Card>
           <CardHeader>
-            <CardTitle>Color Preferences</CardTitle>
+            <CardTitle>{tColors('title')}</CardTitle>
             <CardDescription>
-              Select colors you love and colors to avoid in recommendations
+              {tColors('description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <ColorPicker
-              label="Favorite Colors"
+              label={tColors('favorites')}
               selected={formData.color_favorites || []}
               onChange={(colors) => updateField('color_favorites', colors)}
             />
             <ColorPicker
-              label="Colors to Avoid"
+              label={tColors('avoid')}
               selected={formData.color_avoid || []}
               onChange={(colors) => updateField('color_avoid', colors)}
             />
@@ -774,34 +797,34 @@ export default function SettingsPage() {
         {/* Style Profile */}
         <Card>
           <CardHeader>
-            <CardTitle>Style Profile</CardTitle>
+            <CardTitle>{tStyleProfile('title')}</CardTitle>
             <CardDescription>
-              Adjust how much you prefer each style in outfit recommendations
+              {tStyleProfile('description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <StyleSlider
-              label="Casual"
+              label={tStyles('casual')}
               value={formData.style_profile?.casual ?? 50}
               onChange={(v) => updateStyleProfile('casual', v)}
             />
             <StyleSlider
-              label="Formal"
+              label={tStyles('formal')}
               value={formData.style_profile?.formal ?? 50}
               onChange={(v) => updateStyleProfile('formal', v)}
             />
             <StyleSlider
-              label="Sporty"
+              label={tStyles('sporty')}
               value={formData.style_profile?.sporty ?? 50}
               onChange={(v) => updateStyleProfile('sporty', v)}
             />
             <StyleSlider
-              label="Minimalist"
+              label={tStyles('minimalist')}
               value={formData.style_profile?.minimalist ?? 50}
               onChange={(v) => updateStyleProfile('minimalist', v)}
             />
             <StyleSlider
-              label="Bold"
+              label={tStyles('bold')}
               value={formData.style_profile?.bold ?? 50}
               onChange={(v) => updateStyleProfile('bold', v)}
             />
@@ -811,15 +834,15 @@ export default function SettingsPage() {
         {/* Temperature & Comfort */}
         <Card>
           <CardHeader>
-            <CardTitle>Temperature & Comfort</CardTitle>
+            <CardTitle>{tComfort('title')}</CardTitle>
             <CardDescription>
-              Adjust how recommendations adapt to weather
+              {tComfort('description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Temperature Unit</Label>
+                <Label>{tComfort('temperatureUnit')}</Label>
                 <Select
                   value={formData.temperature_unit || 'celsius'}
                   onValueChange={(v) =>
@@ -830,13 +853,13 @@ export default function SettingsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="celsius">Celsius (°C)</SelectItem>
-                    <SelectItem value="fahrenheit">Fahrenheit (°F)</SelectItem>
+                    <SelectItem value="celsius">{tPreferences('celsius')}</SelectItem>
+                    <SelectItem value="fahrenheit">{tPreferences('fahrenheit')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Temperature Sensitivity</Label>
+                <Label>{tComfort('sensitivity')}</Label>
                 <Select
                   value={formData.temperature_sensitivity || 'normal'}
                   onValueChange={(v) =>
@@ -847,16 +870,16 @@ export default function SettingsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">I feel warm easily</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="high">I feel cold easily</SelectItem>
+                    <SelectItem value="low">{tComfort('sensitivityLow')}</SelectItem>
+                    <SelectItem value="normal">{tComfort('sensitivityNormal')}</SelectItem>
+                    <SelectItem value="high">{tComfort('sensitivityHigh')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Layering Preference</Label>
+                <Label>{tComfort('layering')}</Label>
                 <Select
                   value={formData.layering_preference || 'moderate'}
                   onValueChange={(v) =>
@@ -867,9 +890,9 @@ export default function SettingsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="minimal">Minimal layers</SelectItem>
-                    <SelectItem value="moderate">Moderate layers</SelectItem>
-                    <SelectItem value="heavy">Heavy layers</SelectItem>
+                    <SelectItem value="minimal">{tComfort('layeringMinimal')}</SelectItem>
+                    <SelectItem value="moderate">{tComfort('layeringModerate')}</SelectItem>
+                    <SelectItem value="heavy">{tComfort('layeringHeavy')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -880,10 +903,11 @@ export default function SettingsPage() {
                 const isFahrenheit = unit === 'fahrenheit';
                 const coldC = formData.cold_threshold ?? 10;
                 const hotC = formData.hot_threshold ?? 25;
+                const unitLabel = isFahrenheit ? '°F' : '°C';
                 return (
                   <>
                     <div className="space-y-2">
-                      <Label>Cold Threshold ({isFahrenheit ? '°F' : '°C'})</Label>
+                      <Label>{tComfort('coldThreshold', { unit: unitLabel })}</Label>
                       <Input
                         type="number"
                         value={isFahrenheit ? Math.round(toF(coldC)) : coldC}
@@ -896,7 +920,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Hot Threshold ({isFahrenheit ? '°F' : '°C'})</Label>
+                      <Label>{tComfort('hotThreshold', { unit: unitLabel })}</Label>
                       <Input
                         type="number"
                         value={isFahrenheit ? Math.round(toF(hotC)) : hotC}
@@ -918,15 +942,15 @@ export default function SettingsPage() {
         {/* Recommendation Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>Recommendation Settings</CardTitle>
+            <CardTitle>{tRecommendations('title')}</CardTitle>
             <CardDescription>
-              Customize how outfit recommendations are generated
+              {tRecommendations('description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Default Occasion</Label>
+                <Label>{tRecommendations('defaultOccasion')}</Label>
                 <Select
                   value={formData.default_occasion || 'casual'}
                   onValueChange={(v) => updateField('default_occasion', v)}
@@ -944,7 +968,7 @@ export default function SettingsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Variety Level</Label>
+                <Label>{tRecommendations('varietyLevel')}</Label>
                 <Select
                   value={formData.variety_level || 'moderate'}
                   onValueChange={(v) =>
@@ -955,16 +979,16 @@ export default function SettingsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low (stick to favorites)</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="high">High (try new combinations)</SelectItem>
+                    <SelectItem value="low">{tRecommendations('varietyLow')}</SelectItem>
+                    <SelectItem value="moderate">{tRecommendations('varietyModerate')}</SelectItem>
+                    <SelectItem value="high">{tRecommendations('varietyHigh')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Avoid Repeat Items Within (days)</Label>
+                <Label>{tRecommendations('avoidRepeatDays')}</Label>
                 <Input
                   type="number"
                   value={formData.avoid_repeat_days ?? 7}
@@ -974,7 +998,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Prefer Underused Items</Label>
+                <Label>{tRecommendations('preferUnderused')}</Label>
                 <Select
                   value={formData.prefer_underused_items ? 'yes' : 'no'}
                   onValueChange={(v) => updateField('prefer_underused_items', v === 'yes')}
@@ -983,8 +1007,8 @@ export default function SettingsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
+                    <SelectItem value="yes">{tCommon('yes')}</SelectItem>
+                    <SelectItem value="no">{tCommon('no')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -997,16 +1021,16 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Server className="h-5 w-5" />
-              AI Endpoints
+              {tAiEndpoints('title')}
             </CardTitle>
             <CardDescription>
-              Configure AI endpoints for image analysis. Endpoints are tried in order from top to bottom.
+              {tAiEndpoints('description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {(formData.ai_endpoints || []).length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No custom endpoints configured. Using default server settings.
+                {tAiEndpoints('empty')}
               </p>
             ) : (
               <div className="space-y-3">
@@ -1050,7 +1074,7 @@ export default function SettingsPage() {
                             </Button>
                           </div>
                           <span className="font-medium text-sm truncate">
-                            {endpoint.name || `Endpoint ${index + 1}`}
+                            {endpoint.name || tAiEndpoints('endpointN', { index: index + 1 })}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
@@ -1083,16 +1107,16 @@ export default function SettingsPage() {
                       {/* Status badges and test button */}
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant={endpoint.enabled ? 'default' : 'secondary'} className="text-xs">
-                          {endpoint.enabled ? 'Active' : 'Disabled'}
+                          {endpoint.enabled ? tAiEndpoints('active') : tAiEndpoints('disabled')}
                         </Badge>
                         {endpointTests[index]?.status === 'connected' && (
                           <Badge variant="outline" className="text-xs text-green-600 border-green-600">
-                            Connected
+                            {tAiEndpoints('connected')}
                           </Badge>
                         )}
                         {endpointTests[index]?.status === 'error' && (
                           <Badge variant="outline" className="text-xs text-red-600 border-red-600">
-                            Error
+                            {tAiEndpoints('errorBadge')}
                           </Badge>
                         )}
                         <Button
@@ -1105,7 +1129,7 @@ export default function SettingsPage() {
                           {endpointTests[index]?.status === 'testing' ? (
                             <Loader2 className="h-3 w-3 animate-spin mr-1" />
                           ) : null}
-                          Test Connection
+                          {tAiEndpoints('testConnection')}
                         </Button>
                       </div>
                     </div>
@@ -1113,17 +1137,17 @@ export default function SettingsPage() {
                     {endpointTests[index]?.status === 'connected' && endpointTests[index]?.models && (
                       <div className="text-xs space-y-1 p-2 bg-green-50 dark:bg-green-950 rounded overflow-hidden">
                         <p className="font-medium text-green-700 dark:text-green-300">
-                          {endpointTests[index].models?.length} models available
+                          {tAiEndpoints('modelsAvailable', { count: endpointTests[index].models?.length ?? 0 })}
                         </p>
                         {endpointTests[index].visionModels && endpointTests[index].visionModels!.length > 0 && (
                           <p className="text-green-600 dark:text-green-400 truncate" title={endpointTests[index].visionModels?.join(', ')}>
-                            Vision: {endpointTests[index].visionModels?.slice(0, 3).join(', ')}
+                            {tAiEndpoints('vision')}: {endpointTests[index].visionModels?.slice(0, 3).join(', ')}
                             {(endpointTests[index].visionModels?.length || 0) > 3 && '...'}
                           </p>
                         )}
                         {endpointTests[index].textModels && endpointTests[index].textModels!.length > 0 && (
                           <p className="text-green-600 dark:text-green-400 truncate" title={endpointTests[index].textModels?.join(', ')}>
-                            Text: {endpointTests[index].textModels?.slice(0, 3).join(', ')}
+                            {tAiEndpoints('text')}: {endpointTests[index].textModels?.slice(0, 3).join(', ')}
                             {(endpointTests[index].textModels?.length || 0) > 3 && '...'}
                           </p>
                         )}
@@ -1136,7 +1160,7 @@ export default function SettingsPage() {
                     )}
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="space-y-1">
-                        <Label className="text-xs">Name</Label>
+                        <Label className="text-xs">{tAiEndpoints('name')}</Label>
                         <Input
                           value={endpoint.name}
                           onChange={(e) => {
@@ -1149,7 +1173,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs">URL</Label>
+                        <Label className="text-xs">{tAiEndpoints('url')}</Label>
                         <Input
                           value={endpoint.url}
                           onChange={(e) => {
@@ -1162,7 +1186,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs">Vision Model</Label>
+                        <Label className="text-xs">{tAiEndpoints('visionModel')}</Label>
                         <Input
                           value={endpoint.vision_model}
                           onChange={(e) => {
@@ -1175,7 +1199,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs">Text Model</Label>
+                        <Label className="text-xs">{tAiEndpoints('textModel')}</Label>
                         <Input
                           value={endpoint.text_model}
                           onChange={(e) => {
@@ -1198,7 +1222,7 @@ export default function SettingsPage() {
                 className="flex-1"
                 onClick={() => {
                   const newEndpoint: AIEndpoint = {
-                    name: `Endpoint ${(formData.ai_endpoints || []).length + 1}`,
+                    name: tAiEndpoints('endpointN', { index: (formData.ai_endpoints || []).length + 1 }),
                     url: 'http://localhost:11434/v1',
                     vision_model: 'moondream',
                     text_model: 'phi3:mini',
@@ -1208,7 +1232,7 @@ export default function SettingsPage() {
                 }}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Endpoint
+                {tAiEndpoints('addEndpoint')}
               </Button>
               {hasChanges && (
                 <Button onClick={handleSave} disabled={updatePreferences.isPending}>
@@ -1217,7 +1241,7 @@ export default function SettingsPage() {
                   ) : (
                     <Save className="h-4 w-4 mr-2" />
                   )}
-                  Save
+                  {tCommon('save')}
                 </Button>
               )}
             </div>

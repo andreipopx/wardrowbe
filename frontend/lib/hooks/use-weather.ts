@@ -35,5 +35,7 @@ export function useWeather() {
     enabled: status !== 'loading',
     staleTime: 1000 * 60 * 15, // 15 minutes - weather doesn't change that fast
     retry: false, // Don't retry if location not set
+    // Missing location or upstream weather outage is displayed in-place by WeatherCard.
+    meta: { silent404: true, silentStatuses: [400, 422, 502, 503] },
   });
 }

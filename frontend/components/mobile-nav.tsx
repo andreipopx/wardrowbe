@@ -2,30 +2,32 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Home, Shirt, Sparkles, LayoutGrid, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const navigation = [
-  { name: 'Home', href: '/dashboard', icon: Home },
-  { name: 'Wardrobe', href: '/dashboard/wardrobe', icon: Shirt },
-  { name: 'Suggest', href: '/dashboard/suggest', icon: Sparkles },
-  { name: 'Outfits', href: '/dashboard/outfits', icon: LayoutGrid },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-];
+const items = [
+  { key: 'dashboard', href: '/dashboard', icon: Home },
+  { key: 'wardrobe', href: '/dashboard/wardrobe', icon: Shirt },
+  { key: 'suggest', href: '/dashboard/suggest', icon: Sparkles },
+  { key: 'outfits', href: '/dashboard/outfits', icon: LayoutGrid },
+  { key: 'settings', href: '/dashboard/settings', icon: Settings },
+] as const;
 
 export function MobileNav() {
   const pathname = usePathname();
+  const t = useTranslations('nav');
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background lg:hidden">
       <div className="flex h-16 items-center justify-around">
-        {navigation.map((item) => {
+        {items.map((item) => {
           const isActive = item.href === '/dashboard'
             ? pathname === '/dashboard'
             : pathname === item.href || pathname.startsWith(item.href + '/');
           return (
             <Link
-              key={item.name}
+              key={item.href}
               href={item.href}
               className={cn(
                 'flex flex-col items-center gap-1 px-3 py-2 text-xs',
@@ -35,7 +37,7 @@ export function MobileNav() {
               )}
             >
               <item.icon className="h-5 w-5" aria-hidden="true" />
-              <span>{item.name}</span>
+              <span>{t(item.key)}</span>
             </Link>
           );
         })}

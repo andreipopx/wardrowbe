@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Home,
   Shirt,
@@ -18,26 +19,28 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Wardrobe', href: '/dashboard/wardrobe', icon: Shirt },
-  { name: 'Suggest Outfit', href: '/dashboard/suggest', icon: Sparkles },
-  { name: 'Outfits', href: '/dashboard/outfits', icon: LayoutGrid },
-  { name: 'Pairings', href: '/dashboard/pairings', icon: Layers },
-  { name: 'History', href: '/dashboard/history', icon: History },
-  { name: 'Family Feed', href: '/dashboard/family/feed', icon: HeartHandshake },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
-  { name: 'AI Learning', href: '/dashboard/learning', icon: Brain },
-];
+const primaryItems = [
+  { key: 'dashboard', href: '/dashboard', icon: Home },
+  { key: 'wardrobe', href: '/dashboard/wardrobe', icon: Shirt },
+  { key: 'suggest', href: '/dashboard/suggest', icon: Sparkles },
+  { key: 'outfits', href: '/dashboard/outfits', icon: LayoutGrid },
+  { key: 'pairings', href: '/dashboard/pairings', icon: Layers },
+  { key: 'history', href: '/dashboard/history', icon: History },
+  { key: 'family', href: '/dashboard/family/feed', icon: HeartHandshake },
+  { key: 'analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { key: 'learning', href: '/dashboard/learning', icon: Brain },
+] as const;
 
-const secondaryNavigation = [
-  { name: 'Family', href: '/dashboard/family', icon: Users },
-  { name: 'Notifications', href: '/dashboard/notifications', icon: Bell },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-];
+const secondaryItems = [
+  { key: 'family', href: '/dashboard/family', icon: Users },
+  { key: 'notifications', href: '/dashboard/notifications', icon: Bell },
+  { key: 'settings', href: '/dashboard/settings', icon: Settings },
+] as const;
 
 export function Sidebar() {
   const pathname = usePathname();
+  const tNav = useTranslations('nav');
+  const tCommon = useTranslations('common');
 
   return (
     <aside className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
@@ -52,13 +55,12 @@ export function Sidebar() {
           <ul role="list" className="flex flex-1 flex-col gap-y-7">
             <li>
               <ul role="list" className="-mx-2 space-y-1">
-                {navigation.map((item) => {
-                  // Dashboard only active on exact match, others match with prefix
+                {primaryItems.map((item) => {
                   const isActive = item.href === '/dashboard'
                     ? pathname === '/dashboard'
                     : pathname === item.href || pathname.startsWith(item.href + '/');
                   return (
-                    <li key={item.name}>
+                    <li key={item.href}>
                       <Link
                         href={item.href}
                         className={cn(
@@ -69,7 +71,7 @@ export function Sidebar() {
                         )}
                       >
                         <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                        {item.name}
+                        {tNav(item.key)}
                       </Link>
                     </li>
                   );
@@ -78,17 +80,17 @@ export function Sidebar() {
             </li>
             <li>
               <div className="text-xs font-semibold leading-6 text-muted-foreground">
-                Settings
+                {tCommon('settings')}
               </div>
               <ul role="list" className="-mx-2 mt-2 space-y-1">
-                {secondaryNavigation.map((item) => {
+                {secondaryItems.map((item) => {
                   const matchesPath = pathname === item.href || pathname.startsWith(item.href + '/');
-                  const claimedByPrimary = navigation.some(
+                  const claimedByPrimary = primaryItems.some(
                     (primary) => pathname === primary.href || pathname.startsWith(primary.href + '/')
                   );
                   const isActive = matchesPath && !claimedByPrimary;
                   return (
-                    <li key={item.name}>
+                    <li key={item.href}>
                       <Link
                         href={item.href}
                         className={cn(
@@ -99,7 +101,7 @@ export function Sidebar() {
                         )}
                       >
                         <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                        {item.name}
+                        {tNav(item.key)}
                       </Link>
                     </li>
                   );
