@@ -825,7 +825,7 @@ export default function OnboardingPage() {
 
       {/* Editorial masthead */}
       <div className="pt-8 sm:pt-12 pb-6 px-4 text-center">
-        <p className="font-display italic font-black text-lg text-foreground">wardrowbe</p>
+        <p className="font-display italic font-black text-lg text-foreground">miaurmario</p>
         <div className="h-px w-12 bg-gold mx-auto mt-3" />
       </div>
 

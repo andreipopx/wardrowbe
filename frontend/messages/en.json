@@ -63,8 +63,8 @@
     "backToDashboard": "Back to Dashboard"
   },
   "login": {
-    "brand": "wardrowbe",
-    "tagline": "Your wardrobe, styled as an editorial.",
+    "brand": "miaurmario",
+    "tagline": "Your wardrobe, curated by a cat with taste.",
     "backendErrorTitle": "Backend Configuration Error",
     "backendErrorDefault": "Unable to connect to backend server. Please check that the backend is running.",
     "notConfiguredTitle": "No authentication method configured",
@@ -92,7 +92,7 @@
       "style": "Style",
       "firstItem": "First Item"
     },
-    "welcomeTitle": "Welcome to Wardrowbe, {name}!",
+    "welcomeTitle": "Welcome to Miaurmario, {name}!",
     "welcomeSubtitle": "Let's get your digital wardrobe set up in just a few steps.",
     "step1Title": "Photograph your clothes",
     "step1Desc": "Our AI will automatically tag colors, styles, and more",
@@ -287,7 +287,7 @@
   "wardrobe": {
     "title": "Wardrobe",
     "subtitle": "Manage the clothes you own",
-    "empty": "You haven't added any items yet.",
+    "empty": "Nothing here yet. Stinky will wait patiently.",
     "emptyCta": "Add your first item",
     "addItem": "Add item",
     "searchPlaceholder": "Search your wardrobe...",
@@ -299,8 +299,8 @@
     "aiAnalyzing": "AI Analyzing...",
     "analysisFailed": "Analysis Failed",
     "aiCompleteness": "AI completeness: {pct}%",
-    "emptyTitle": "Your wardrobe is empty",
-    "emptyBody": "Add your first clothing item to start getting personalized outfit suggestions.",
+    "emptyTitle": "Nothing here yet",
+    "emptyBody": "Stinky will wait patiently. Add your first piece and we'll get started.",
     "addFirstItem": "Add First Item",
     "searchItemsPlaceholder": "Search items...",
     "perPage": "{size} per page",
@@ -369,7 +369,7 @@
   },
   "suggest": {
     "title": "The Stylist",
-    "editorialSubtitle": "One look, considered for today.",
+    "editorialSubtitle": "One look, guided by Stinky.",
     "editorialSuggestFrame": "Today's proposal",
     "editorialWeather": "Weather",
     "editorialOccasion": "Occasion",
@@ -653,7 +653,7 @@
   },
   "invite": {
     "title": "Family Invitation",
-    "subtitle": "You've been invited to join a family on Wardrowbe",
+    "subtitle": "You've been invited to join a family on Miaurmario",
     "accept": "Accept Invitation",
     "joinedToast": "Joined {name}!",
     "invalidLink": "This invite link is invalid or has expired.",
@@ -731,7 +731,7 @@
   },
   "notifications": {
     "title": "Notifications",
-    "subtitle": "Choose how and when Wardrowbe should nudge you",
+    "subtitle": "Choose how and when Miaurmario should nudge you",
     "pageSubtitle": "Configure how and when you receive outfit recommendations",
     "channelsTitle": "Channels",
     "channelsSubtitle": "Where notifications get delivered",

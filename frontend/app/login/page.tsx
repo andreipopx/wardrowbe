@@ -212,7 +212,7 @@ export default function LoginPage() {
           {/* Wordmark */}
           <header className="text-center mb-4">
             <h1 className="font-display italic font-black text-display-2xl leading-none">
-              wardrowbe
+              miaurmario
             </h1>
             <div className="h-px w-16 bg-gold mx-auto mt-6" />
             <p className="font-editorial italic text-xl text-muted-foreground mt-6">

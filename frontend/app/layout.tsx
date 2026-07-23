@@ -32,8 +32,8 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: 'Wardrowbe',
-  description: 'Tu armario, curado como una editorial.',
+  title: 'Miaurmario',
+  description: 'Tu armario, curado por un gato con criterio.',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
@@ -49,7 +49,16 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Wardrowbe',
+    title: 'Miaurmario',
+  },
+  openGraph: {
+    title: 'Miaurmario',
+    description: 'Tu armario, curado por un gato con criterio.',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Miaurmario',
+    description: 'Tu armario, curado por un gato con criterio.',
   },
 };
 

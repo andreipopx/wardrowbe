@@ -63,8 +63,8 @@
     "backToDashboard": "Volver al panel"
   },
   "login": {
-    "brand": "wardrowbe",
-    "tagline": "Tu armario, curado como una editorial.",
+    "brand": "miaurmario",
+    "tagline": "Tu armario, curado por un gato con criterio.",
     "backendErrorTitle": "Error de configuración del backend",
     "backendErrorDefault": "No se puede conectar con el servidor. Verifica que el backend esté funcionando.",
     "notConfiguredTitle": "No hay método de autenticación configurado",
@@ -92,7 +92,7 @@
       "style": "Estilo",
       "firstItem": "Primera prenda"
     },
-    "welcomeTitle": "¡Bienvenido a Wardrowbe, {name}!",
+    "welcomeTitle": "¡Bienvenido a Miaurmario, {name}!",
     "welcomeSubtitle": "Vamos a preparar tu armario digital en unos pocos pasos.",
     "step1Title": "Fotografía tu ropa",
     "step1Desc": "Nuestra IA etiquetará colores, estilos y más automáticamente",
@@ -287,7 +287,7 @@
   "wardrobe": {
     "title": "Armario",
     "subtitle": "Gestiona la ropa que tienes",
-    "empty": "Aún no has añadido ninguna prenda.",
+    "empty": "Aún no hay prendas aquí. Stinky esperará pacientemente.",
     "emptyCta": "Añade tu primera prenda",
     "addItem": "Añadir prenda",
     "searchPlaceholder": "Buscar en tu armario...",
@@ -299,8 +299,8 @@
     "aiAnalyzing": "Analizando con IA...",
     "analysisFailed": "Análisis fallido",
     "aiCompleteness": "Completitud IA: {pct}%",
-    "emptyTitle": "Tu armario está vacío",
-    "emptyBody": "Añade tu primera prenda para empezar a recibir sugerencias personalizadas.",
+    "emptyTitle": "Aún no hay prendas aquí",
+    "emptyBody": "Stinky esperará pacientemente. Añade tu primera pieza y empezamos.",
     "addFirstItem": "Añadir primera prenda",
     "searchItemsPlaceholder": "Buscar prendas...",
     "perPage": "{size} por página",
@@ -369,7 +369,7 @@
   },
   "suggest": {
     "title": "El Estilista",
-    "editorialSubtitle": "Un look, pensado para hoy.",
+    "editorialSubtitle": "Un look, guiado por Stinky.",
     "editorialSuggestFrame": "La propuesta del día",
     "editorialWeather": "Clima",
     "editorialOccasion": "Ocasión",
@@ -653,7 +653,7 @@
   },
   "invite": {
     "title": "Invitación de familia",
-    "subtitle": "Te han invitado a unirte a una familia en Wardrowbe",
+    "subtitle": "Te han invitado a unirte a una familia en Miaurmario",
     "accept": "Aceptar invitación",
     "joinedToast": "¡Te has unido a {name}!",
     "invalidLink": "Este enlace de invitación no es válido o ha caducado.",
@@ -731,7 +731,7 @@
   },
   "notifications": {
     "title": "Notificaciones",
-    "subtitle": "Decide cómo y cuándo quieres que Wardrowbe te avise",
+    "subtitle": "Decide cómo y cuándo quieres que Miaurmario te avise",
     "pageSubtitle": "Configura cómo y cuándo recibes recomendaciones de conjuntos",
     "channelsTitle": "Canales",
     "channelsSubtitle": "Dónde se entregan las notificaciones",

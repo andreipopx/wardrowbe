@@ -61,7 +61,7 @@ export function Sidebar() {
       <div className="flex grow flex-col gap-y-8 overflow-y-auto px-8 pb-8">
         <div className="flex h-16 shrink-0 items-center">
           <Link href="/dashboard" className="font-display italic font-black text-2xl text-foreground">
-            wardrowbe
+            miaurmario
           </Link>
         </div>
 

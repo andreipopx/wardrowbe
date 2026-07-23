@@ -1,7 +1,7 @@
 {
-  "name": "Wardrowbe",
-  "short_name": "Wardrowbe",
-  "description": "Tu armario, curado como una editorial.",
+  "name": "Miaurmario",
+  "short_name": "Miaurmario",
+  "description": "Tu armario, curado por un gato con criterio.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

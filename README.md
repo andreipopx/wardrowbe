@@ -1,8 +1,10 @@
 <p align="center">
-  <img src="./frontend/public/logo.svg" alt="wardrowbe" width="120" height="120">
+  <img src="./frontend/public/logo.svg" alt="Miaurmario" width="120" height="120">
 </p>
 
-<h1 align="center">wardrowbe</h1>
+<h1 align="center">Miaurmario</h1>
+
+<p align="center"><em>Rebrand del fork <a href="https://github.com/andreipopx/wardrowbe">andreipopx/wardrowbe</a>. El repositorio conserva el nombre "wardrowbe" para no romper el remote — la marca visible es Miaurmario, curada por Stinky.</em></p>
 
 <p align="center">
   Put your wardrobe in rows. Snap. Organize. Wear.
@@ -171,7 +173,7 @@ docker compose logs -f frontend backend
 
 ## AI Configuration
 
-Wardrowbe works with any OpenAI-compatible API. You need two types of models:
+Miaurmario works with any OpenAI-compatible API. You need two types of models:
 - **Vision model**: Analyzes clothing images to extract colors, patterns, styles
 - **Text model**: Generates outfit recommendations and descriptions
 
@@ -586,7 +588,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
  
 ## Support
 
-If you find wardrowbe useful, consider supporting its development:
+If you find Miaurmario useful, consider supporting its development:
 
 <a href="https://buymeacoffee.com/anyesh"><img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy Me A Coffee"></a>
 

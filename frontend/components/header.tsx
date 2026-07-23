@@ -41,7 +41,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
         {/* Wordmark — visible on mobile only (sidebar carries it on desktop) */}
         <Link href="/dashboard" className="lg:hidden font-display italic font-black text-xl text-foreground">
-          wardrowbe
+          miaurmario
         </Link>
 
         <div className="flex flex-1 items-center justify-end gap-x-3 sm:gap-x-5">
