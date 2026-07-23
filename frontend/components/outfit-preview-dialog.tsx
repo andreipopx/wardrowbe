@@ -15,6 +15,7 @@ import { useFamily } from '@/lib/hooks/use-family';
 import { useRotateImage } from '@/lib/hooks/use-items';
 import { FamilyRatingForm, FamilyRatingsDisplay } from '@/components/family-ratings';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 
 interface OutfitPreviewDialogProps {
@@ -25,6 +26,7 @@ interface OutfitPreviewDialogProps {
 }
 
 export function OutfitPreviewDialog({ outfit, open, onClose, isOwner = true }: OutfitPreviewDialogProps) {
+  const t = useTranslations('outfitPreview');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageKey, setImageKey] = useState(0); // Force image reload after rotation
   const [showRatingForm, setShowRatingForm] = useState(false);
@@ -53,9 +55,9 @@ export function OutfitPreviewDialog({ outfit, open, onClose, isOwner = true }: O
     try {
       await rotateImage.mutateAsync({ id: currentItem.id, direction });
       setImageKey((k) => k + 1); // Force image reload
-      toast.success('Image rotated');
+      toast.success(t('toast.rotated'));
     } catch {
-      toast.error('Failed to rotate image');
+      toast.error(t('toast.rotateFailed'));
     }
   };
 
@@ -67,7 +69,7 @@ export function OutfitPreviewDialog({ outfit, open, onClose, isOwner = true }: O
         {/* Header - sticky */}
         <div className="flex items-center justify-between p-4 pb-2 border-b flex-shrink-0">
           <div>
-            <h2 className="text-lg font-semibold capitalize">{outfit.occasion} Outfit</h2>
+            <h2 className="text-lg font-semibold capitalize">{outfit.occasion}</h2>
             <div className="flex items-center gap-2 mt-0.5">
               {outfit.scheduled_for && (
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
@@ -104,7 +106,7 @@ export function OutfitPreviewDialog({ outfit, open, onClose, isOwner = true }: O
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                    No image
+                    —
                   </div>
                 )}
               </div>
@@ -165,7 +167,7 @@ export function OutfitPreviewDialog({ outfit, open, onClose, isOwner = true }: O
                   size="icon"
                   onClick={() => handleRotate('ccw')}
                   disabled={rotateImage.isPending}
-                  title="Rotate left"
+                  title={t('rotateLeft')}
                   className="h-8 w-8"
                 >
                   {rotateImage.isPending ? (
@@ -179,7 +181,7 @@ export function OutfitPreviewDialog({ outfit, open, onClose, isOwner = true }: O
                   size="icon"
                   onClick={() => handleRotate('cw')}
                   disabled={rotateImage.isPending}
-                  title="Rotate right"
+                  title={t('rotateRight')}
                   className="h-8 w-8"
                 >
                   {rotateImage.isPending ? (

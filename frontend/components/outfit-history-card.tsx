@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import { useAcceptOutfit, useRejectOutfit, type Outfit, type OutfitSource, type WoreInsteadItem } from '@/lib/hooks/use-outfits';
 import Image from 'next/image';
 
@@ -107,6 +108,7 @@ interface OutfitHistoryCardProps {
 }
 
 export function OutfitHistoryCard({ outfit, onFeedback, onPreview }: OutfitHistoryCardProps) {
+  const t = useTranslations('outfitHistoryCard');
   const acceptOutfit = useAcceptOutfit();
   const rejectOutfit = useRejectOutfit();
   const [previewItem, setPreviewItem] = useState<WoreInsteadItem | null>(null);
@@ -114,18 +116,18 @@ export function OutfitHistoryCard({ outfit, onFeedback, onPreview }: OutfitHisto
   const handleAccept = async () => {
     try {
       await acceptOutfit.mutateAsync(outfit.id);
-      toast.success('Outfit accepted');
+      toast.success(t('toast.accepted'));
     } catch {
-      toast.error('Failed to accept outfit');
+      toast.error(t('toast.acceptFailed'));
     }
   };
 
   const handleReject = async () => {
     try {
       await rejectOutfit.mutateAsync(outfit.id);
-      toast.success('Outfit rejected');
+      toast.success(t('toast.rejected'));
     } catch {
-      toast.error('Failed to reject outfit');
+      toast.error(t('toast.rejectFailed'));
     }
   };
 

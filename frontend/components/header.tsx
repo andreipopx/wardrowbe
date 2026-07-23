@@ -7,7 +7,7 @@ import { signOut } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { LanguageSwitcher, SHOW_LANGUAGE_SWITCHER } from '@/components/language-switcher';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -45,9 +45,12 @@ export function Header({ onMenuClick }: HeaderProps) {
         </Link>
 
         <div className="flex flex-1 items-center justify-end gap-x-3 sm:gap-x-5">
-          <LanguageSwitcher variant="compact" />
-
-          <div className="h-4 w-px bg-border-solid/60" aria-hidden="true" />
+          {SHOW_LANGUAGE_SWITCHER && (
+            <>
+              <LanguageSwitcher variant="compact" />
+              <div className="h-4 w-px bg-border-solid/60" aria-hidden="true" />
+            </>
+          )}
 
           <button
             type="button"

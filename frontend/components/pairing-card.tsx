@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import { useDeletePairing } from '@/lib/hooks/use-pairings';
 import { Pairing } from '@/lib/types';
 import Image from 'next/image';
@@ -31,14 +32,16 @@ interface PairingCardProps {
 }
 
 export function PairingCard({ pairing, onFeedback, onPreview }: PairingCardProps) {
+  const t = useTranslations('pairingCard');
+  const tn = useTranslations('nav');
   const deletePairing = useDeletePairing();
 
   const handleDelete = async () => {
     try {
       await deletePairing.mutateAsync(pairing.id);
-      toast.success('Pairing deleted');
+      toast.success(t('toast.deleted'));
     } catch {
-      toast.error('Failed to delete pairing');
+      toast.error(t('toast.deleteFailed'));
     }
   };
 
@@ -54,7 +57,7 @@ export function PairingCard({ pairing, onFeedback, onPreview }: PairingCardProps
         <div className="flex items-center justify-between mb-2">
           <Badge variant="outline">
             <Sparkles className="h-3 w-3 mr-1" />
-            Pairing
+            {tn('pairings')}
           </Badge>
           <Button
             variant="ghost"

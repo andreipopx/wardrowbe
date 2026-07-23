@@ -315,15 +315,18 @@ async def get_analytics(
     acceptance_trend.reverse()  # Oldest first
 
     # === Generate Insights ===
+    # Textos en español: la app es actualmente Spanish-only. Cuando se reactive
+    # el switcher de idioma, mover estos textos a algún mecanismo i18n del
+    # backend (Accept-Language, o mover la generación al frontend).
     insights = []
 
     if total_items == 0:
-        insights.append("Start by adding some items to your wardrobe!")
+        insights.append("Empieza añadiendo algunas prendas a tu armario.")
     else:
         # Wardrobe insights
         if len(never_worn) > 0:
             insights.append(
-                f"You have {len(never_worn)} items you've never worn. Consider styling them!"
+                f"Tienes {len(never_worn)} prendas que aún no has estrenado. ¡Anímate a combinarlas!"
             )
 
         # Color insights
@@ -331,10 +334,12 @@ async def get_analytics(
             top_color = color_distribution[0].color
             if color_distribution[0].percentage > 40:
                 insights.append(
-                    f"Your wardrobe is heavy on {top_color} ({color_distribution[0].percentage}%). Consider adding variety!"
+                    f"Tu armario tira mucho al {top_color} ({color_distribution[0].percentage}%). Prueba a variar la paleta."
                 )
             elif len(color_distribution) <= 3 and ready_items > 10:
-                insights.append("Your wardrobe has limited color variety. Explore new colors!")
+                insights.append(
+                    "Tu armario tiene poca variedad de color. Explora nuevos tonos."
+                )
 
         # Type insights
         if type_distribution:
@@ -352,23 +357,27 @@ async def get_analytics(
                 ratio = tops / bottoms
                 if ratio > 3:
                     insights.append(
-                        "You have many more tops than bottoms. Consider adding pants or skirts!"
+                        "Tienes muchos más tops que prendas inferiores. Considera añadir pantalones o faldas."
                     )
                 elif ratio < 0.5:
-                    insights.append("You have more bottoms than tops. Consider adding some shirts!")
+                    insights.append(
+                        "Tienes más prendas inferiores que tops. Considera añadir algunas camisas o tops."
+                    )
 
         # Outfit insights
         if acceptance_rate is not None:
             if acceptance_rate > 80:
-                insights.append(f"Great taste! You accept {acceptance_rate:.0f}% of suggestions.")
+                insights.append(
+                    f"¡Buen ojo! Aceptas el {acceptance_rate:.0f}% de las sugerencias."
+                )
             elif acceptance_rate < 50:
                 insights.append(
-                    "You reject many suggestions. Consider updating your style preferences."
+                    "Rechazas muchas sugerencias. Prueba a ajustar tus preferencias de estilo."
                 )
 
         if outfits_this_week == 0 and total_outfits > 0:
             insights.append(
-                "You haven't generated any outfits this week. Try getting a suggestion!"
+                "Esta semana aún no has generado ningún outfit. ¡Pídele uno al Estilista!"
             )
 
     return AnalyticsResponse(

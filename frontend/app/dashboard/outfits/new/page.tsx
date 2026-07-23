@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, AlertTriangle, ChevronLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -41,6 +42,7 @@ import { isWornImmutableError } from '@/lib/studio/errors';
 import { computeEditLoadPhase } from '@/lib/studio/edit-load';
 
 export default function StudioEditorPage() {
+  const t = useTranslations('outfitNew');
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit') || undefined;
@@ -178,11 +180,11 @@ export default function StudioEditorPage() {
 
   const handleSave = async (markWorn: boolean) => {
     if (state.items.length === 0) {
-      toast.error('Pick at least one item');
+      toast.error(t('toast.pickAtLeastOne'));
       return;
     }
     if (!state.occasion) {
-      toast.error('Pick an occasion');
+      toast.error(t('toast.pickOccasion'));
       return;
     }
 
@@ -195,20 +197,20 @@ export default function StudioEditorPage() {
             items: state.items.map((i) => i.id),
           },
         });
-        toast.success('Outfit updated');
+        toast.success(t('toast.outfitUpdated'));
         router.push(`/dashboard/outfits/${editId}`);
       } catch (error) {
         if (isWornImmutableError(error)) {
           setWornConflictOpen(true);
           return;
         }
-        toast.error(getErrorMessage(error, 'Failed to save outfit'));
+        toast.error(getErrorMessage(error, t('toast.outfitSaveFailed')));
       }
       return;
     }
 
     if (!markWorn && !state.name.trim()) {
-      toast.error('Give your lookbook entry a name before saving');
+      toast.error(t('toast.nameRequired'));
       return;
     }
 
@@ -223,14 +225,14 @@ export default function StudioEditorPage() {
         mark_worn: markWorn,
       });
       clearDraft();
-      toast.success(markWorn ? 'Saved and marked worn' : 'Saved to lookbook');
+      toast.success(markWorn ? t('toast.savedAndWorn') : t('toast.savedToLookbook'));
       router.push(
         markWorn
           ? '/dashboard/outfits?filter=worn'
           : '/dashboard/outfits?filter=my-looks'
       );
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Failed to save outfit'));
+      toast.error(getErrorMessage(error, t('toast.outfitSaveFailed')));
     }
   };
 
@@ -261,12 +263,12 @@ export default function StudioEditorPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] px-4 text-center">
         <AlertCircle className="h-10 w-10 text-muted-foreground mb-3" />
-        <h2 className="text-lg font-semibold mb-1">Outfit not found</h2>
+        <h2 className="text-lg font-semibold mb-1">{t('notFoundTitle')}</h2>
         <p className="text-sm text-muted-foreground mb-4 max-w-md">
-          This outfit no longer exists. It may have been deleted from another tab or device.
+          {t('notFoundBody')}
         </p>
         <Button asChild>
-          <Link href="/dashboard/outfits">Back to outfits</Link>
+          <Link href="/dashboard/outfits">{t('back')}</Link>
         </Button>
       </div>
     );
@@ -274,12 +276,8 @@ export default function StudioEditorPage() {
 
   if (isEditMode && editPhase === 'error') {
     const isAuthError = editErrorStatus === 401 || editErrorStatus === 403;
-    const headline = isAuthError
-      ? "You can't edit this outfit"
-      : "Couldn't load this outfit";
-    const body = isAuthError
-      ? 'Your session may have expired or this outfit belongs to another account.'
-      : 'Something went wrong while loading this outfit. Check your connection and try again.';
+    const headline = isAuthError ? t('authErrorTitle') : t('loadErrorTitle');
+    const body = isAuthError ? t('authErrorBody') : t('loadErrorBody');
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] px-4 text-center">
         <AlertTriangle className="h-10 w-10 text-destructive mb-3" />
@@ -288,11 +286,11 @@ export default function StudioEditorPage() {
         <div className="flex gap-2">
           {!isAuthError && (
             <Button variant="outline" onClick={() => refetchEdit()}>
-              Try again
+              {t('tryAgain')}
             </Button>
           )}
           <Button asChild>
-            <Link href="/dashboard/outfits">Back to outfits</Link>
+            <Link href="/dashboard/outfits">{t('back')}</Link>
           </Button>
         </div>
       </div>
@@ -304,16 +302,15 @@ export default function StudioEditorPage() {
       <>
         <div className="flex flex-col items-center justify-center h-[60vh] px-4 text-center">
           <AlertCircle className="h-10 w-10 text-muted-foreground mb-3" />
-          <h2 className="text-lg font-semibold mb-1">This outfit has been worn</h2>
+          <h2 className="text-lg font-semibold mb-1">{t('wornImmutableTitle')}</h2>
           <p className="text-sm text-muted-foreground mb-4 max-w-md">
-            Worn outfits can&apos;t be edited because they&apos;re part of your wear history.
-            You can save a copy as a new lookbook entry instead.
+            {t('wornImmutableBody')}
           </p>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
-              <Link href={`/dashboard/outfits/${editId}`}>Back to outfit</Link>
+              <Link href={`/dashboard/outfits/${editId}`}>{t('backToOutfit')}</Link>
             </Button>
-            <Button onClick={() => setCloneDialogOpen(true)}>Save as new</Button>
+            <Button onClick={() => setCloneDialogOpen(true)}>{t('saveAsNew')}</Button>
           </div>
         </div>
         <CloneToLookbookDialog
@@ -335,11 +332,11 @@ export default function StudioEditorPage() {
         <Button variant="ghost" size="sm" asChild>
           <Link href={cancelHref}>
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Cancel
+            {t('cancel')}
           </Link>
         </Button>
         <h1 className="text-lg font-semibold">
-          {isEditMode ? 'Edit Outfit' : 'Studio'}
+          {isEditMode ? t('editTitle') : t('studioTitle')}
         </h1>
         <div className="flex flex-col items-end">
           <div className="flex gap-2">
@@ -353,7 +350,7 @@ export default function StudioEditorPage() {
                 {mutationPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  'Wear Today'
+                  t('wearToday')
                 )}
               </Button>
             )}
@@ -361,20 +358,20 @@ export default function StudioEditorPage() {
               {mutationPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : isEditMode ? (
-                'Save Changes'
+                t('saveChanges')
               ) : (
-                'Save to Lookbook'
+                t('saveToLookbook')
               )}
             </Button>
           </div>
           {!canSave && !mutationPending && (
             <p className="text-xs text-muted-foreground mt-1 text-right">
               {state.items.length === 0 && state.occasion === null
-                ? 'Pick at least one item and an occasion'
+                ? t('pickAtLeastOneOrOccasion')
                 : state.items.length === 0
-                  ? 'Pick at least one item'
+                  ? t('pickAtLeastOne')
                   : state.occasion === null
-                    ? 'Pick an occasion'
+                    ? t('pickOccasion')
                     : ''}
             </p>
           )}
@@ -384,14 +381,14 @@ export default function StudioEditorPage() {
       {pendingDraft && (
         <div className="bg-blue-50 border-b border-blue-200 px-4 py-3 flex items-center justify-between gap-4">
           <p className="text-sm text-blue-900">
-            You have an unsaved draft from your last session. Resume it?
+            {t('draftBanner')}
           </p>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={handleDiscardDraft}>
-              Start fresh
+              {t('startFresh')}
             </Button>
             <Button size="sm" onClick={handleResumeDraft}>
-              Resume
+              {t('resume')}
             </Button>
           </div>
         </div>
@@ -402,7 +399,7 @@ export default function StudioEditorPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                Canvas
+                {t('canvas')}
               </h2>
               <CanvasPanel
                 items={state.items}
@@ -411,7 +408,7 @@ export default function StudioEditorPage() {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                Details
+                {t('details')}
               </h2>
               <DetailsPanel
                 items={state.items}
@@ -430,13 +427,13 @@ export default function StudioEditorPage() {
 
           <div>
             <h2 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-              Your Wardrobe
+              {t('yourWardrobe')}
             </h2>
             <ItemPicker
               selectedIds={selectedIds}
               onToggle={handleToggle}
               hideNeedsWash={true}
-              emptyMessage="No items in your wardrobe yet. Add items first."
+              emptyMessage={t('emptyWardrobe')}
               heightClass="h-[280px]"
             />
           </div>
@@ -446,21 +443,20 @@ export default function StudioEditorPage() {
       <AlertDialog open={wornConflictOpen} onOpenChange={setWornConflictOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>This outfit has been worn</AlertDialogTitle>
+            <AlertDialogTitle>{t('wornConflictTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Worn outfits can&apos;t be edited because they&apos;re part of your wear history. Save your
-              changes as a new lookbook entry instead?
+              {t('wornConflictBody')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Discard changes</AlertDialogCancel>
+            <AlertDialogCancel>{t('discardChanges')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 setWornConflictOpen(false);
                 setCloneDialogOpen(true);
               }}
             >
-              Save as new
+              {t('saveAsNew')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

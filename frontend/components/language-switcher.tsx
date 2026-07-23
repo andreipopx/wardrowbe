@@ -8,6 +8,12 @@ const LOCALE_COOKIE = 'wardrowbe_locale';
 const LOCALES = ['en', 'es'] as const;
 type LocaleCode = (typeof LOCALES)[number];
 
+// SHOW_LANGUAGE_SWITCHER: false while the app is Spanish-only for family use.
+// To restore the EN/ES toggle in the header/login/onboarding, flip this to true.
+// The rest of the i18n plumbing (en.json, next-intl config, request pipeline)
+// is intact — this flag is the ONLY thing gating visibility.
+export const SHOW_LANGUAGE_SWITCHER = false;
+
 interface Props {
   /** 'compact' fits the header (tight border, small text). 'default' fits standalone use. */
   variant?: 'compact' | 'default';
@@ -15,6 +21,7 @@ interface Props {
 }
 
 export function LanguageSwitcher({ variant = 'default', className }: Props) {
+  if (!SHOW_LANGUAGE_SWITCHER) return null;
   const t = useTranslations('common');
   const current = useLocale();
   const [isPending, startTransition] = useTransition();

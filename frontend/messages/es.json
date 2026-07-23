@@ -42,7 +42,15 @@
     "lightMode": "Modo claro",
     "darkMode": "Modo oscuro",
     "themeSystem": "Sistema",
-    "offline": "Sin conexión"
+    "offline": "Sin conexión",
+    "unknown": "Desconocido",
+    "primary": "Principal",
+    "optional": "Opcional",
+    "aria": {
+      "closeDialog": "Cerrar el diálogo",
+      "previousImage": "Imagen anterior",
+      "nextImage": "Imagen siguiente"
+    }
   },
   "errors": {
     "generic": "Algo salió mal. Inténtalo de nuevo.",
@@ -355,7 +363,95 @@
       "deleted": "Prenda eliminada",
       "deleteError": "No se pudo eliminar la prenda",
       "updated": "Cambios guardados",
-      "updateError": "No se pudieron guardar los cambios"
+      "updateError": "No se pudieron guardar los cambios",
+      "toolbar": {
+        "toggleFavorite": "Marcar como favorita",
+        "findMatchingOutfits": "Buscar outfits con esta pieza",
+        "reanalyzeWithAi": "Volver a analizar con IA",
+        "analysisInProgress": "Análisis en curso...",
+        "rotateLeft": "Girar a la izquierda",
+        "rotateRight": "Girar a la derecha",
+        "removeBackground": "Quitar el fondo",
+        "undoBackgroundRemoval": "Deshacer quitar fondo",
+        "replaceImage": "Reemplazar imagen",
+        "cancelEditing": "Cancelar edición",
+        "editItem": "Editar prenda",
+        "close": "Cerrar",
+        "setAsPrimary": "Marcar como principal",
+        "deleteImage": "Borrar imagen"
+      },
+      "analyzing": "Stinky está analizando...",
+      "form": {
+        "name": "Nombre",
+        "namePlaceholder": "Nombre de la prenda",
+        "type": "Tipo",
+        "brand": "Marca",
+        "brandPlaceholder": "Nombre de la marca",
+        "primaryColor": "Color principal",
+        "selectColor": "Elige un color",
+        "notes": "Notas",
+        "notesPlaceholder": "Lo que quieras recordar de esta prenda...",
+        "washInterval": "Ciclo de lavado (usos)",
+        "washIntervalHelp": "Cuántas veces se puede llevar antes de lavarla. Déjalo vacío para usar el valor por defecto.",
+        "washIntervalDefault": "Por defecto: {days}",
+        "cancel": "Cancelar",
+        "save": "Guardar"
+      },
+      "info": {
+        "wornTimesWithLast": "Usada {count, plural, one {# vez} other {# veces}}",
+        "lastLabel": "Última vez: {date}"
+      },
+      "wash": {
+        "sectionTitle": "Estado de lavado",
+        "markWashed": "Marcar como lavada",
+        "wearsSinceWash": "Usos desde el último lavado: {count}/{max}",
+        "needsWashing": "Necesita lavado",
+        "lastWashed": "Último lavado: {date}",
+        "historyToggle": "Historial de lavados ({count})"
+      },
+      "wear": {
+        "sectionTitle": "Historial de uso",
+        "totalWears": "Usos totales",
+        "lastWorn": "Última vez",
+        "never": "Nunca",
+        "today": "Hoy",
+        "daysAgo": "hace {days} d",
+        "avgPerMonth": "Media/mes",
+        "usualOccasion": "Ocasión habitual",
+        "lastSixMonths": "Últimos 6 meses",
+        "timelineToggle": "Cronología ({count} eventos)"
+      },
+      "ai": {
+        "title": "Análisis de IA",
+        "completeBadge": "{pct}% completo",
+        "confidentBadge": "{pct}% de confianza",
+        "fitLabel": "corte {fit}"
+      },
+      "notesLabel": "Notas",
+      "addedOn": "Añadida el {date}",
+      "deleteButton": "Eliminar esta prenda",
+      "deleteConfirm": {
+        "title": "¿Eliminar esta prenda?",
+        "descriptionWithName": "Se eliminará “{name}” de tu armario para siempre. No se puede deshacer.",
+        "descriptionGeneric": "Se eliminará esta prenda de tu armario para siempre. No se puede deshacer."
+      },
+      "toast": {
+        "markedWashed": "Marcada como lavada",
+        "markWashedFailed": "No se pudo marcar como lavada",
+        "deleted": "Prenda eliminada",
+        "deletedDescWithName": "“{name}” ya no está en tu armario.",
+        "deletedDescGeneric": "Se ha quitado del armario.",
+        "deleteFailed": "No se pudo eliminar",
+        "deleteFailedDesc": "Algo salió mal. Inténtalo otra vez.",
+        "imageRotated": "Imagen girada",
+        "imageRotateFailed": "No se pudo girar la imagen",
+        "backgroundRemoved": "Fondo eliminado",
+        "backgroundRemoveFailed": "No se pudo quitar el fondo",
+        "originalRestored": "Imagen original restaurada",
+        "originalRestoreFailed": "No se pudo restaurar la original",
+        "imageReplaced": "Imagen reemplazada",
+        "imageReplaceFailed": "No se pudo reemplazar la imagen"
+      }
     },
     "bulk": {
       "deleted": "{count, plural, one {# prenda eliminada} other {# prendas eliminadas}}",
@@ -365,6 +461,63 @@
       "queueFailed": "{count, plural, one {No se pudo encolar # prenda} other {No se pudieron encolar # prendas}}",
       "deleteError": "No se pudieron eliminar las prendas",
       "reanalyzeError": "No se pudieron encolar las prendas para re-análisis"
+    },
+    "add": {
+      "dialogTitle": "Añadir prendas",
+      "tabSingle": "Una prenda",
+      "tabBulk": "Subida masiva",
+      "typeLabel": "Tipo",
+      "typePlaceholder": "Que lo detecte la IA...",
+      "colorLabel": "Color principal",
+      "colorPlaceholder": "Elige un color",
+      "brandLabel": "Marca",
+      "brandPlaceholder": "Ej: Zara, Uniqlo",
+      "nameLabel": "Nombre (opcional)",
+      "namePlaceholder": "Ej: camisa azul oxford",
+      "chooseImage": "Elegir una imagen",
+      "chooseImages": "Elegir imágenes",
+      "dropHere": "Suelta las imágenes aquí",
+      "dragDropHint": "o arrastra hasta {max} imágenes (máx {size} MB cada una)",
+      "uploading": "Subiendo...",
+      "uploadCta": "Añadir al armario",
+      "bulkHint": "Selecciona hasta {max} imágenes a la vez. Se analizan en segundo plano.",
+      "cancel": "Cancelar",
+      "toast": {
+        "singleSuccess": "Prenda añadida al armario",
+        "singleFailed": "No se pudo añadir la prenda",
+        "bulkPartial": "{ok} subidas, {failed} fallidas",
+        "bulkAllSuccess": "{count, plural, one {# prenda subida} other {# prendas subidas}}",
+        "bulkAllFailed": "{count, plural, one {No se pudo subir # prenda} other {No se pudieron subir las # prendas}}",
+        "processingBackground": "Se están analizando en segundo plano.",
+        "bulkError": "No se pudieron subir las prendas. Inténtalo otra vez."
+      },
+      "description": "Sube fotos de tus prendas",
+      "dragDropSingle": "Arrastra una imagen o toca para elegir",
+      "dragDropSingleActive": "Suelta la imagen aquí...",
+      "dragDropBulk": "Arrastra varias imágenes o toca para elegir",
+      "dragDropBulkActive": "Suelta las imágenes aquí...",
+      "acceptedFormats": "JPEG, PNG, WebP o HEIC",
+      "typeHint": "(Stinky lo detecta si lo dejas vacío)",
+      "nameLabelOptional": "Nombre (opcional)",
+      "notesLabel": "Notas",
+      "notesPlaceholder": "Cualquier detalle que quieras recordar...",
+      "addSingle": "Añadir prenda",
+      "imagesSelected": "{count, plural, one {# imagen seleccionada} other {# imágenes seleccionadas}}",
+      "clearAll": "Quitar todo",
+      "skipAiLabel": "Saltar el análisis con IA (se añaden con valores por defecto, editas los detalles después)",
+      "aiWillTag": "Stinky las etiqueta automáticamente. Los detalles se pueden editar después.",
+      "uploadingCount": "Subiendo {count} prendas...",
+      "uploadBulk": "{count, plural, one {Subir # prenda} other {Subir # prendas}}",
+      "resultHeadline": "{ok} de {total} subidas correctamente",
+      "resultFailedNote": "{count, plural, one {# prenda falló} other {# prendas fallaron}}",
+      "uploadMore": "Subir más",
+      "done": "Listo",
+      "closeConfirmTitle": "¿Descartar las imágenes seleccionadas?",
+      "closeConfirmSingle": "Tienes 1 imagen seleccionada; se perderá si cierras.",
+      "closeConfirmMultiple": "Tienes {count, plural, one {# imagen} other {# imágenes}} seleccionadas; se perderán si cierras.",
+      "keepEditing": "Seguir editando",
+      "discard": "Descartar",
+      "previewAlt": "Vista previa"
     }
   },
   "suggest": {
@@ -731,7 +884,26 @@
     "expires": "Expira el {date}",
     "familyOutfitsTitle": "Conjuntos de la familia",
     "familyOutfitsDesc": "Explora y valora los conjuntos de tu familia",
-    "openFamilyFeed": "Abrir feed familiar"
+    "openFamilyFeed": "Abrir feed familiar",
+    "feedTitle": "Feed de la familia",
+    "setUpFamily": "Configurar familia",
+    "manageFamily": "Gestionar familia",
+    "ratingCount": "{count, plural, one {# valoración} other {# valoraciones}}",
+    "rateMembersOutfit": "Valorar el outfit de {name}",
+    "yourRating": "Tu valoración:",
+    "toast": {
+      "ratingRequired": "Elige una valoración primero",
+      "ratingUpdated": "Valoración actualizada",
+      "ratingSubmitted": "Valoración enviada",
+      "ratingRemoved": "Valoración retirada"
+    },
+    "commentPlaceholder": "Añade una nota (opcional)",
+    "feed": {
+      "title": "Feed de la familia",
+      "setUp": "Configurar familia",
+      "manage": "Gestionar familia",
+      "yourRating": "Tu valoración:"
+    }
   },
   "notifications": {
     "title": "Notificaciones",
@@ -934,7 +1106,37 @@
     "loadMore": "Cargar más",
     "noOutfitsOnDay": "No hay conjuntos este día",
     "outfitCount": "{count, plural, one {# conjunto} other {# conjuntos}}",
-    "outfitsThisMonth": "{count, plural, one {# conjunto este mes} other {# conjuntos este mes}}"
+    "outfitsThisMonth": "{count, plural, one {# conjunto este mes} other {# conjuntos este mes}}",
+    "detailBackTo": "Volver a outfits",
+    "detailWornBadge": "Este outfit ya se ha llevado",
+    "detailDiscardChanges": "Descartar cambios",
+    "detailSaveAsNew": "Guardar como nuevo",
+    "detailPickAtLeastOne": "Elige al menos una pieza primero",
+    "detailSavedAndWorn": "Guardado y marcado como usado",
+    "toast": {
+      "addedToToday": "Añadido a hoy",
+      "addToTodayFailed": "No se pudo añadir a hoy",
+      "deleted": "Outfit eliminado",
+      "deleteFailed": "No se pudo eliminar el outfit",
+      "accepted": "Outfit guardado",
+      "acceptFailed": "No se pudo guardar el outfit",
+      "rejected": "Entendido — otra vez será",
+      "rejectFailed": "No se pudo enviar el feedback",
+      "imageRotated": "Imagen girada",
+      "imageRotateFailed": "No se pudo girar la imagen"
+    },
+    "preview": {
+      "rotateLeft": "Girar a la izquierda",
+      "rotateRight": "Girar a la derecha"
+    },
+    "detail": {
+      "backToOutfits": "Volver a outfits",
+      "wornBadge": "Este outfit ya se ha llevado",
+      "discardChanges": "Descartar cambios",
+      "saveAsNew": "Guardar como nuevo",
+      "pickAtLeastOne": "Elige al menos una pieza primero",
+      "savedAndWorn": "Guardado y marcado como usado"
+    }
   },
   "pairings": {
     "title": "Combinaciones",
@@ -946,7 +1148,25 @@
     "allItemTypes": "Todos los tipos",
     "itemTypeOption": "{type} ({count})",
     "pairingCount": "{count, plural, one {# combinación} other {# combinaciones}}",
-    "loadMore": "Cargar más"
+    "loadMore": "Cargar más",
+    "toast": {
+      "deleted": "Combinación eliminada",
+      "deleteFailed": "No se pudo eliminar la combinación"
+    },
+    "generateDialog": {
+      "title": "Generar looks con esta pieza",
+      "description": "El Estilista construirá outfits que incluyan esta prenda.",
+      "occasion": "Ocasión",
+      "generate": "Generar looks",
+      "generating": "Generando...",
+      "cancel": "Cancelar",
+      "successToast": "{count, plural, one {# look generado} other {# looks generados}}",
+      "errorToast": "No se pudieron generar los looks"
+    },
+    "cardToast": {
+      "deleted": "Look eliminado",
+      "deleteFailed": "No se pudo eliminar el look"
+    }
   },
   "learning": {
     "title": "Aprendizaje de la IA",
@@ -1005,5 +1225,355 @@
     "addToAvoid": "Añadir a colores a evitar:",
     "updatePreferences": "Actualizar preferencias",
     "lastUpdated": "Perfil de aprendizaje actualizado por última vez: {date}"
+  },
+  "feedback": {
+    "dialogTitle": "Valorar este outfit",
+    "sectionRating": "Cuéntanos qué tal fue",
+    "overallRating": "Valoración general",
+    "comfortRating": "Comodidad",
+    "styleRating": "Estilo",
+    "worn": "¿Lo llevaste puesto?",
+    "wornYes": "Sí, lo llevé",
+    "wornNo": "Al final llevé otra cosa",
+    "wornDetail": "Cuéntanos qué acabaste llevando",
+    "commentLabel": "¿Alguna nota?",
+    "commentPlaceholder": "Cómo te sentiste, qué cambiarías...",
+    "modificationsLabel": "¿Cambiaste algo del look?",
+    "modificationsPlaceholder": "Ej: sustituí las botas por zapatillas",
+    "cancel": "Cancelar",
+    "submit": "Enviar",
+    "submitting": "Enviando...",
+    "toast": {
+      "submitted": "Gracias — feedback guardado",
+      "failed": "No se pudo guardar el feedback"
+    },
+    "rateHowItWent": "Cuéntanos qué tal fue",
+    "tellUsWhatYouWore": "Cuéntanos qué acabaste llevando",
+    "overallLabel": "Valoración general",
+    "wearQuestionTitle": "¿Llevaste puesto este outfit?",
+    "wearQuestionDesc": "Cuéntanos si seguiste la recomendación para que el Estilista aprenda mejor tus gustos.",
+    "yesIWoreIt": "Sí, lo llevé",
+    "noWoreElse": "No, al final llevé otra cosa",
+    "ratingTitle": "Valorar este outfit",
+    "ratingDesc": "¿Qué tal te fue con este outfit?",
+    "commentsLabel": "Comentarios (opcional)",
+    "commentsPlaceholder": "Cualquier cosa que quieras contar sobre este outfit...",
+    "back": "Atrás",
+    "whatWoreInsteadTitle": "¿Qué acabaste llevando?",
+    "whatWoreInsteadDesc": "Elige las piezas que llevaste realmente. Así el Estilista aprende tus gustos.",
+    "searchWardrobe": "Busca en tu armario...",
+    "itemsSelected": "{count, plural, one {# pieza seleccionada} other {# piezas seleccionadas}}",
+    "loadingMore": "Cargando más...",
+    "noMatchSearch": "Nada coincide con esa búsqueda",
+    "noItemsInWardrobe": "Aún no tienes prendas en el armario",
+    "showingAll": "Se muestran las {total} piezas",
+    "skip": "Saltar",
+    "submitWithCount": "Enviar ({count})"
+  },
+  "studio": {
+    "aiAssistFallbackOccasion": "Brunch de viernes",
+    "aiAssistError": "El asistente de IA falló",
+    "aiAssistFallbackPrompt": "Elige al menos una prenda y una ocasión",
+    "aiAssistSuccess": "Look construido con tus piezas"
+  },
+  "lookbook": {
+    "cloneDialogTitle": "Guardar en el lookbook",
+    "namePlaceholder": "Ej: Brunch de viernes",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "toast": {
+      "nameRequired": "Ponle un nombre primero",
+      "saved": "Guardado en tu lookbook",
+      "failed": "No se pudo guardar en el lookbook"
+    }
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pageOfTotal": "Página {page} de {total}",
+    "of": "de",
+    "page": "Página"
+  },
+  "picker": {
+    "searchPlaceholder": "Busca en tu armario...",
+    "resultsCount": "{count, plural, one {# prenda} other {# prendas}}",
+    "emptyTitle": "Nada coincide con esa búsqueda",
+    "emptyBody": "Prueba otra palabra o quita el filtro.",
+    "empty": "Ninguna prenda coincide."
+  },
+  "color": {
+    "eyedropper": {
+      "buttonTitle": "Sacar color de la imagen",
+      "loadError": "No se pudo cargar la imagen (puede estar bloqueada por CORS)",
+      "readError": "No se pudo leer el color de ese punto",
+      "cancel": "Cancelar",
+      "instructions": "Toca donde quieras muestrear un color",
+      "dialogTitle": "Sacar color de la imagen",
+      "canvasUnavailable": "El lienzo no está disponible",
+      "contextUnavailable": "No se pudo abrir el contexto del lienzo",
+      "loadFailedStatus": "No se pudo cargar la imagen (estado {status})",
+      "loadFailedBlob": "No se pudo cargar la imagen desde el blob",
+      "loadFailedGeneric": "No se pudo cargar la imagen",
+      "pickedLabel": "Muestreado",
+      "clear": "Quitar",
+      "useName": "Usar {name}",
+      "noneSelected": "Aún no has elegido color"
+    }
+  },
+  "bulk": {
+    "confirmDialog": {
+      "cancel": "Cancelar",
+      "archive": "Archivar",
+      "delete": "Eliminar",
+      "restore": "Restaurar",
+      "move": "Mover"
+    },
+    "all": "Todas",
+    "selectAll": "Seleccionar todas",
+    "noneSelected": "Ninguna seleccionada",
+    "allExcept": "Todas menos {count}",
+    "allNSelected": "Las {total} seleccionadas",
+    "nSelected": "{count} seleccionadas",
+    "selectAllMatching": "Seleccionar las {total} que coinciden",
+    "clearSelection": "Quitar selección",
+    "reanalyze": "Volver a analizar",
+    "delete": "Eliminar",
+    "confirmTitleAll": "¿Eliminar las {total} prendas?",
+    "confirmTitleCount": "¿Eliminar {count, plural, one {# prenda} other {# prendas}}?",
+    "confirmBody": "Se eliminarán las prendas seleccionadas y sus imágenes para siempre. No se puede deshacer.",
+    "cancel": "Cancelar",
+    "firstPage": "Primera página",
+    "prevPage": "Página anterior",
+    "nextPage": "Página siguiente",
+    "lastPage": "Última página"
+  },
+  "outfitPreview": {
+    "rotateLeft": "Girar a la izquierda",
+    "rotateRight": "Girar a la derecha",
+    "toast": {
+      "rotated": "Imagen girada",
+      "rotateFailed": "No se pudo girar la imagen"
+    },
+    "occasionSuffix": "outfit"
+  },
+  "outfitHistoryCard": {
+    "toast": {
+      "accepted": "Outfit guardado",
+      "acceptFailed": "No se pudo guardar el outfit",
+      "rejected": "Entendido — otra vez será",
+      "rejectFailed": "No se pudo enviar el feedback"
+    }
+  },
+  "familyRatings": {
+    "toast": {
+      "ratingRequired": "Elige una valoración primero",
+      "ratingUpdated": "Valoración actualizada",
+      "ratingSubmitted": "Valoración enviada",
+      "ratingRemoved": "Valoración retirada",
+      "commentPlaceholder": "Añade una nota (opcional)",
+      "submitFailed": "No se pudo enviar la valoración",
+      "removeFailed": "No se pudo retirar la valoración"
+    },
+    "yourRating": "Tu valoración:",
+    "commentPlaceholder": "Añade una nota (opcional)",
+    "update": "Actualizar valoración",
+    "submit": "Enviar valoración"
+  },
+  "detailsPanel": {
+    "aiFallbackOccasion": "Brunch de viernes",
+    "aiPickFirst": "Elige al menos una prenda y una ocasión primero",
+    "aiSuccess": "Look compuesto por Stinky",
+    "aiFail": "El asistente de IA no pudo componer el look",
+    "occasionPlaceholder": "Brunch de viernes",
+    "occasionLabel": "Ocasión",
+    "aiAssist": "Que la IA termine el look",
+    "assisting": "Componiendo...",
+    "pickAtLeastOne": "Elige al menos una pieza y una ocasión primero",
+    "aiSkipped": "Saltado {label}: {reason}",
+    "aiAdded": "{count, plural, one {La IA añadió # pieza} other {La IA añadió # piezas}}",
+    "aiNoNew": "La IA no añadió piezas nuevas",
+    "aiFailed": "El asistente de IA falló",
+    "nameLabel": "Nombre",
+    "nameLabelHelp": "(obligatorio para el lookbook)",
+    "namePlaceholder": "Brunch de viernes",
+    "occasionRequiredHint": "Elige una ocasión antes de guardar.",
+    "warnings": {
+      "noBottoms": "No has elegido pantalón/falda.",
+      "noTop": "No has elegido top.",
+      "multiBottoms": "Hay más de una prenda inferior.",
+      "noFootwear": "No has elegido calzado."
+    },
+    "aiThinking": "Stinky está pensando..."
+  },
+  "itemPicker": {
+    "searchPlaceholder": "Busca en tu armario...",
+    "resultsCount": "{count, plural, one {# resultado} other {# resultados}}",
+    "emptyTitle": "Nada coincide con esa búsqueda",
+    "emptyBody": "Prueba con otra palabra o quita el filtro.",
+    "search": "Busca en tu armario...",
+    "results": "{count, plural, one {# resultado} other {# resultados}}",
+    "empty": "Nada coincide con esa búsqueda.",
+    "loadingMore": "Cargando más..."
+  },
+  "cloneToLookbook": {
+    "dialogTitle": "Guardar en el lookbook",
+    "namePlaceholder": "Brunch de viernes",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "toast": {
+      "nameRequired": "Ponle un nombre primero",
+      "saved": "Guardado en tu lookbook",
+      "failed": "No se pudo guardar en el lookbook"
+    },
+    "dialogDescription": "Ponle nombre a este look para encontrarlo más adelante.",
+    "nameLabel": "Nombre",
+    "saving": "Guardando..."
+  },
+  "outfitBuilder": {
+    "backToOutfits": "Volver a outfits",
+    "wornBadge": "Este outfit ya se ha llevado",
+    "discardChanges": "Descartar cambios",
+    "saveAsNew": "Guardar como nuevo",
+    "pickAtLeastOne": "Elige al menos una pieza primero",
+    "savedAndWorn": "Guardado y marcado como usado",
+    "toast": {
+      "deleted": "Outfit eliminado",
+      "deleteFailed": "No se pudo eliminar el outfit",
+      "pickAtLeastOne": "Elige al menos una pieza primero",
+      "savedAndWorn": "Guardado y marcado como usado"
+    }
+  },
+  "outfitDetail": {
+    "toast": {
+      "addedToday": "Añadido a hoy",
+      "addedTodayFailed": "No se pudo llevar hoy",
+      "deleted": "Outfit eliminado",
+      "deleteFailed": "No se pudo eliminar el outfit"
+    },
+    "backToOutfits": "Volver a outfits",
+    "lookbookTemplate": "Plantilla del lookbook",
+    "tipLabel": "Tip:",
+    "itemsCount": "Piezas ({count})",
+    "wearToday": "Llevar hoy",
+    "saveToLookbook": "Guardar en el lookbook",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirmDelete": "¿Eliminar este outfit? No se puede deshacer.",
+    "wornCount": "{count, plural, one {Llevado # vez} other {Llevado # veces}}",
+    "undated": "Sin fecha",
+    "seeAll": "Ver todos",
+    "notWornYet": "Este look aún no se ha llevado. Toca «Llevar hoy» para registrarlo.",
+    "titleFallback": "Outfit {occasion}"
+  },
+  "familyFeed": {
+    "title": "Feed de la familia",
+    "setUp": "Configurar familia",
+    "manage": "Gestionar familia",
+    "rateOutfitOf": "Valorar el outfit de {name}",
+    "yourRating": "Tu valoración:",
+    "ratingCount": "{count, plural, one {# valoración} other {# valoraciones}}",
+    "loading": "Cargando el feed...",
+    "loadError": "No se pudo cargar el feed de la familia",
+    "empty": "Aún no hay outfits en el feed familiar",
+    "openStylist": "Abrir El Estilista",
+    "ratingsCount": "{count, plural, one {# valoración} other {# valoraciones}}",
+    "byUser": "por {name}",
+    "subtitle": "Mira y valora los outfits de tu familia",
+    "sourceScheduled": "Programado",
+    "sourceOnDemand": "Al momento",
+    "sourceManual": "Manual",
+    "sourcePairing": "Combinación",
+    "ratingsCountShort": "({count, plural, one {# valoración} other {# valoraciones}})",
+    "edit": "Editar",
+    "joinFirstTitle": "Únete a una familia primero",
+    "joinFirstBody": "Crea o únete a una familia para ver y valorar los outfits del resto.",
+    "setUpFamily": "Configurar familia",
+    "manageFamily": "Gestionar familia",
+    "noOtherMembersTitle": "Aún no hay más miembros",
+    "noOtherMembersBody": "Invita a tu familia para poder ver y valorar los outfits de cada quien.",
+    "inviteMembers": "Invitar miembros",
+    "noOutfitsTitle": "Aún no hay outfits",
+    "noOutfitsBody": "{name} todavía no ha recibido ninguna sugerencia de outfit. Vuelve pronto.",
+    "noOutfitsBodyGeneric": "Este miembro aún no ha recibido sugerencias de outfit. Vuelve pronto."
+  },
+  "pairingCard": {
+    "toast": {
+      "deleted": "Look eliminado",
+      "deleteFailed": "No se pudo eliminar el look"
+    }
+  },
+  "outfitNew": {
+    "title": "Outfit nuevo",
+    "subtitle": "Compón un look a mano desde tu armario.",
+    "pickAtLeastOne": "Elige al menos una pieza",
+    "savedAndWorn": "Guardado y marcado como usado",
+    "occasion": "Ocasión",
+    "occasionPlaceholder": "Ej: brunch de viernes",
+    "notes": "Notas",
+    "notesPlaceholder": "Lo que quieras recordar de este look...",
+    "back": "Volver a outfits",
+    "wornBadge": "Este outfit ya se ha llevado",
+    "save": "Guardar look",
+    "saving": "Guardando...",
+    "saveAsNew": "Guardar como nuevo",
+    "discard": "Descartar cambios",
+    "wearNow": "Marcar como usado hoy",
+    "backToOutfits": "Volver a outfits",
+    "backToOutfit": "Volver al outfit",
+    "discardChanges": "Descartar cambios",
+    "toast": {
+      "pickAtLeastOne": "Elige al menos una pieza primero",
+      "pickOccasion": "Elige una ocasión",
+      "outfitUpdated": "Outfit actualizado",
+      "outfitSaveFailed": "No se pudo guardar el outfit",
+      "nameRequired": "Ponle nombre a la entrada del lookbook primero",
+      "savedAndWorn": "Guardado y marcado como usado",
+      "savedToLookbook": "Guardado en tu lookbook"
+    },
+    "editTitle": "Editar outfit",
+    "studioTitle": "Estudio",
+    "cancel": "Cancelar",
+    "wearToday": "Llevar hoy",
+    "saveChanges": "Guardar cambios",
+    "saveToLookbook": "Guardar en el lookbook",
+    "pickAtLeastOneOrOccasion": "Elige al menos una pieza y una ocasión",
+    "pickOccasion": "Elige una ocasión",
+    "notFoundTitle": "Outfit no encontrado",
+    "notFoundBody": "Este outfit ya no existe. Puede que se eliminara desde otra pestaña o dispositivo.",
+    "authErrorTitle": "No puedes editar este outfit",
+    "loadErrorTitle": "No se pudo cargar este outfit",
+    "authErrorBody": "Puede que tu sesión haya caducado o que este outfit pertenezca a otra cuenta.",
+    "loadErrorBody": "Algo salió mal cargando este outfit. Revisa tu conexión e inténtalo de nuevo.",
+    "tryAgain": "Reintentar",
+    "wornImmutableTitle": "Este outfit ya se ha llevado",
+    "wornImmutableBody": "Los outfits ya llevados no se editan (forman parte de tu historial). Puedes guardar una copia como entrada nueva en el lookbook.",
+    "draftBanner": "Tienes un borrador sin guardar de la última sesión. ¿Retomarlo?",
+    "startFresh": "Empezar de cero",
+    "resume": "Retomar",
+    "canvas": "Lienzo",
+    "details": "Detalles",
+    "yourWardrobe": "Tu armario",
+    "emptyWardrobe": "Aún no tienes prendas. Añade la primera.",
+    "wornConflictTitle": "Este outfit ya se ha llevado",
+    "wornConflictBody": "Los outfits ya llevados no se editan (forman parte de tu historial). ¿Guardas los cambios como un lookbook nuevo?"
+  },
+  "generatePairings": {
+    "title": "Sugerir looks con esta pieza",
+    "description": "La IA construirá outfits completos alrededor de esta prenda.",
+    "occasion": "Ocasión",
+    "occasionPlaceholder": "Ej: casual",
+    "generate": "Generar outfits",
+    "generating": "Generando...",
+    "cancel": "Cancelar",
+    "successToast": "{count, plural, one {# outfit generado} other {# outfits generados}}",
+    "errorToast": "No se pudieron generar los outfits",
+    "dialogTitle": "Buscar looks con esta pieza",
+    "colorTypeSubtitle": "{type} {color}",
+    "numberOfOutfits": "Número de outfits",
+    "helpMore": "Más outfits = más variedad, pero tarda más en generarse.",
+    "createdHeadline": "{count, plural, one {# outfit creado} other {# outfits creados}}",
+    "viewInPairings": "Míralos en la sección de Combinaciones",
+    "close": "Cerrar",
+    "viewPairings": "Ver combinaciones"
   }
 }

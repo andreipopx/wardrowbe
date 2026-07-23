@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { LanguageSwitcher, SHOW_LANGUAGE_SWITCHER } from '@/components/language-switcher';
 
 function ThemeButton() {
   const { theme, setTheme } = useTheme();
@@ -202,8 +202,12 @@ export default function LoginPage() {
     <main className="min-h-screen bg-background text-foreground">
       {/* Top-right utility strip */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-3 z-10">
-        <LanguageSwitcher variant="compact" />
-        <div className="h-4 w-px bg-border-solid/60" />
+        {SHOW_LANGUAGE_SWITCHER && (
+          <>
+            <LanguageSwitcher variant="compact" />
+            <div className="h-4 w-px bg-border-solid/60" />
+          </>
+        )}
         <ThemeButton />
       </div>
 

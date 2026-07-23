@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Star, Check, X, ChevronLeft, Search, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -70,6 +71,7 @@ interface AccumulatedItem {
 }
 
 export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
+  const t = useTranslations('feedback');
   const [step, setStep] = useState<FeedbackStep>('wear-question');
   const [actuallyWorn, setActuallyWorn] = useState<boolean | null>(null);
   const [rating, setRating] = useState(0);
@@ -82,17 +84,15 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const submitFeedback = useSubmitFeedback();
 
-  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-      setPage(1); // Reset to first page on search
-      setAccumulatedItems([]); // Clear accumulated items on new search
+      setPage(1);
+      setAccumulatedItems([]);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch wardrobe items with search and pagination
   const { data: itemsData, isLoading, isFetching } = useItems(
     { search: debouncedSearch || undefined, is_archived: false },
     page,
@@ -101,7 +101,6 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
   const hasMore = itemsData?.has_more ?? false;
   const totalItems = itemsData?.total ?? 0;
 
-  // Accumulate items as pages load
   useEffect(() => {
     if (itemsData?.items) {
       if (page === 1) {
@@ -116,21 +115,16 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
     }
   }, [itemsData?.items, page]);
 
-  // Use accumulated items for display
   const wardrobeItems = accumulatedItems;
 
-  // Reset state when dialog opens for a different outfit
   useEffect(() => {
     if (open) {
-      // Check if feedback already exists
       const hasFeedback = outfit.feedback?.rating != null;
 
       if (hasFeedback) {
-        // Go straight to rating step if already has feedback
         setStep('rating');
         setActuallyWorn(true);
       } else {
-        // Start with wear question
         setStep('wear-question');
         setActuallyWorn(null);
       }
@@ -145,14 +139,12 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
     }
   }, [open, outfit.id, outfit.feedback]);
 
-  // Load more items for infinite scroll
   const loadMore = useCallback(() => {
     if (hasMore && !isFetching) {
       setPage((p) => p + 1);
     }
   }, [hasMore, isFetching]);
 
-  // Handle scroll for infinite loading
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
     const nearBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 100;
@@ -188,10 +180,10 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
           wore_instead_items: selectedItems.length > 0 ? selectedItems : undefined,
         },
       });
-      toast.success('Feedback submitted');
+      toast.success(t('toast.submitted'));
       onClose();
     } catch {
-      toast.error('Failed to submit feedback');
+      toast.error(t('toast.failed'));
     }
   };
 
@@ -203,26 +195,24 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
           actually_worn: false,
         },
       });
-      toast.success('Feedback submitted');
+      toast.success(t('toast.submitted'));
       onClose();
     } catch {
-      toast.error('Failed to submit feedback');
+      toast.error(t('toast.failed'));
     }
   };
 
-  // Get items from the outfit to exclude from "wore instead" picker
   const outfitItemIds = new Set(outfit.items?.map((i) => i.id) || []);
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-w-md">
-        {/* Step 1: Did you wear this? */}
         {step === 'wear-question' && (
           <>
             <DialogHeader>
-              <DialogTitle>Did you wear this outfit?</DialogTitle>
+              <DialogTitle>{t('wearQuestionTitle')}</DialogTitle>
               <DialogDescription>
-                Let us know if you followed this recommendation so we can learn your preferences.
+                {t('wearQuestionDesc')}
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-3 py-4">
@@ -236,8 +226,8 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
                   <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="text-left">
-                  <div className="font-medium">Yes, I wore it</div>
-                  <div className="text-sm text-muted-foreground">Rate how it went</div>
+                  <div className="font-medium">{t('yesIWoreIt')}</div>
+                  <div className="text-sm text-muted-foreground">{t('rateHowItWent')}</div>
                 </div>
               </Button>
               <Button
@@ -250,30 +240,29 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
                   <X className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="text-left">
-                  <div className="font-medium">No, I wore something else</div>
-                  <div className="text-sm text-muted-foreground">Tell us what you wore</div>
+                  <div className="font-medium">{t('noWoreElse')}</div>
+                  <div className="text-sm text-muted-foreground">{t('tellUsWhatYouWore')}</div>
                 </div>
               </Button>
             </div>
           </>
         )}
 
-        {/* Step 2a: Rating (if they wore it) */}
         {step === 'rating' && (
           <>
             <DialogHeader>
-              <DialogTitle>Rate This Outfit</DialogTitle>
-              <DialogDescription>How did this outfit work out for you?</DialogDescription>
+              <DialogTitle>{t('ratingTitle')}</DialogTitle>
+              <DialogDescription>{t('ratingDesc')}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Overall Rating</label>
+                <label className="text-sm font-medium mb-2 block">{t('overallRating')}</label>
                 <StarRating rating={rating} onRate={setRating} size="lg" />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Comments (optional)</label>
+                <label className="text-sm font-medium mb-2 block">{t('commentsLabel')}</label>
                 <Textarea
-                  placeholder="Any thoughts about this outfit?"
+                  placeholder={t('commentsPlaceholder')}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                 />
@@ -283,52 +272,48 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
               {!outfit.feedback?.rating && (
                 <Button variant="ghost" onClick={() => setStep('wear-question')}>
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  Back
+                  {t('back')}
                 </Button>
               )}
               <div className="flex gap-2 ml-auto">
                 <Button variant="outline" onClick={onClose}>
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button onClick={handleSubmit} disabled={submitFeedback.isPending}>
-                  {submitFeedback.isPending ? 'Submitting...' : 'Submit'}
+                  {submitFeedback.isPending ? t('submitting') : t('submit')}
                 </Button>
               </div>
             </div>
           </>
         )}
 
-        {/* Step 2b: What did you wear instead? */}
         {step === 'wore-instead' && (
           <>
             <DialogHeader>
-              <DialogTitle>What did you wear instead?</DialogTitle>
+              <DialogTitle>{t('whatWoreInsteadTitle')}</DialogTitle>
               <DialogDescription>
-                Select the items you actually wore. This helps us learn your preferences.
+                {t('whatWoreInsteadDesc')}
               </DialogDescription>
             </DialogHeader>
 
-            {/* Search input */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search your wardrobe..."
+                placeholder={t('searchWardrobe')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
               />
             </div>
 
-            {/* Items grid with scroll */}
             <div
               ref={scrollContainerRef}
               onScroll={handleScroll}
               className="h-[280px] overflow-y-auto py-2 -mx-2 px-2"
             >
-              {/* Selected items count */}
               {selectedItems.length > 0 && (
                 <div className="text-xs text-muted-foreground mb-2">
-                  {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
+                  {t('itemsSelected', { count: selectedItems.length })}
                 </div>
               )}
 
@@ -371,32 +356,28 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
                   ))}
               </div>
 
-              {/* Loading states */}
               {isLoading && (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               )}
 
-              {/* Load more indicator */}
               {isFetching && !isLoading && (
                 <div className="flex items-center justify-center py-4">
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mr-2" />
-                  <span className="text-xs text-muted-foreground">Loading more...</span>
+                  <span className="text-xs text-muted-foreground">{t('loadingMore')}</span>
                 </div>
               )}
 
-              {/* Empty state */}
               {!isLoading && wardrobeItems.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
-                  {debouncedSearch ? 'No items match your search' : 'No items in wardrobe'}
+                  {debouncedSearch ? t('noMatchSearch') : t('noItemsInWardrobe')}
                 </div>
               )}
 
-              {/* End of results */}
               {!isLoading && !hasMore && wardrobeItems.length > 0 && (
                 <div className="text-center text-xs text-muted-foreground py-3">
-                  Showing all {totalItems} items
+                  {t('showingAll', { total: totalItems })}
                 </div>
               )}
             </div>
@@ -404,19 +385,19 @@ export function FeedbackDialog({ outfit, open, onClose }: FeedbackDialogProps) {
             <div className="flex justify-between pt-2 border-t">
               <Button variant="ghost" onClick={() => setStep('wear-question')}>
                 <ChevronLeft className="h-4 w-4 mr-1" />
-                Back
+                {t('back')}
               </Button>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleSkipWoreInstead}>
-                  Skip
+                  {t('skip')}
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   disabled={submitFeedback.isPending || selectedItems.length === 0}
                 >
                   {submitFeedback.isPending
-                    ? 'Submitting...'
-                    : `Submit (${selectedItems.length})`}
+                    ? t('submitting')
+                    : t('submitWithCount', { count: selectedItems.length })}
                 </Button>
               </div>
             </div>
