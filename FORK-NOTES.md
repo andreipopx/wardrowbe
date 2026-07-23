@@ -31,6 +31,9 @@ Fashion-editorial aesthetic (Vogue / AnOther), warm cream + burgundy + old-gold 
 Design reference: [`frontend/DESIGN-SYSTEM.md`](frontend/DESIGN-SYSTEM.md) — palette, fonts, utilities, component variants, adoption recipe.
 Follow-up work: [`frontend/REBRAND-TODO.md`](frontend/REBRAND-TODO.md).
 
+### Outfit builder — free-form editorial canvas
+The Studio (`/dashboard/outfits/new`) got a drag-and-drop canvas: 3:4 editorial page, `@dnd-kit` sensors (iPhone long-press so scroll still works over the canvas), tap-to-select toolbar (bring to front / send to back / remove). Layout persists per item (`OutfitItem.pos_x/pos_y/scale/rotation/z_index`, nullable — legacy outfits fall back to the classic grid on the detail page). Contract, migration, DnD-library trade-offs, and audit history: see [`docs/outfit-builder.md`](docs/outfit-builder.md).
+
 ### El Estilista (backend prompt)
 - `backend/app/prompts/recommendation.txt` — rewritten as a Spanish fashion editor / personal stylist voice. References Iris van Herpen and Vivienne Westwood in the system prompt so the model matches the app's cultural register. Two-sentence editorial highlights, evocative Spanish headlines, tú (not usted). See notes in [`REBRAND-TODO.md`](frontend/REBRAND-TODO.md) about end-to-end validation.
 
