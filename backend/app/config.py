@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     )
 
     # Application
-    app_name: str = "Wardrowbe"
+    app_name: str = "Miaurmario"
     debug: bool = False
     secret_key: str = Field(default=DEFAULT_SECRET_KEY)
     studio_disabled: bool = False

@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title=settings.app_name,
-    description="AI-powered wardrobe management and outfit recommendations",
+    description="Miaurmario — tu armario, curado por un gato con criterio.",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs" if settings.debug else None,
