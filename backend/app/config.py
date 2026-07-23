@@ -25,7 +25,14 @@ class Settings(BaseSettings):
     studio_disabled: bool = False
 
     # CORS
-    cors_origins: list[str] = Field(default=["http://localhost:3000", "http://localhost:8081"])
+    cors_origins: list[str] = Field(
+        default=[
+            "http://localhost:3000",
+            "http://localhost:8081",
+            "http://miaurmario.home",
+            "https://miaurmario.andreipop.org",
+        ]
+    )
 
     # Database
     database_url: PostgresDsn = Field(

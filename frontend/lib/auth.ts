@@ -195,4 +195,9 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  // Trust the X-Forwarded-Host header so callback URLs match whichever origin
+  // the request arrived on (LAN http://miaurmario.home vs public
+  // https://miaurmario.andreipop.org via Cloudflare Tunnel). Without this,
+  // NEXTAUTH_URL locks every callback to a single origin.
+  trustHost: true,
 };
