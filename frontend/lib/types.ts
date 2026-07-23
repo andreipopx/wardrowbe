@@ -283,6 +283,8 @@ export interface WeatherData {
   humidity: number;
   precipitation_chance: number;
   condition: string;
+  /** Localized human label derived from condition_code. Prefer over `condition` for display. */
+  condition_label?: string | null;
 }
 
 export interface FeedbackSummary {

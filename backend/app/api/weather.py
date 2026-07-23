@@ -22,8 +22,12 @@ class WeatherResponse(BaseModel):
     precipitation_chance: int = Field(description="Chance of precipitation percentage")
     precipitation_mm: float = Field(description="Current precipitation in mm")
     wind_speed: float = Field(description="Wind speed in km/h")
-    condition: str = Field(description="Weather condition description")
+    condition: str = Field(description="Weather condition description (English, legacy)")
     condition_code: int = Field(description="WMO weather code")
+    condition_label: str | None = Field(
+        default=None,
+        description="Localized (es) human-readable label derived from condition_code",
+    )
     is_day: bool = Field(description="Whether it's daytime")
     uv_index: float = Field(description="UV index")
     timestamp: str = Field(description="Timestamp of weather data")
@@ -34,8 +38,12 @@ class ForecastDayResponse(BaseModel):
     temp_min: float = Field(description="Minimum temperature in Celsius")
     temp_max: float = Field(description="Maximum temperature in Celsius")
     precipitation_chance: int = Field(description="Maximum precipitation chance percentage")
-    condition: str = Field(description="Weather condition description")
+    condition: str = Field(description="Weather condition description (English, legacy)")
     condition_code: int = Field(description="WMO weather code")
+    condition_label: str | None = Field(
+        default=None,
+        description="Localized (es) human-readable label derived from condition_code",
+    )
 
 
 class ForecastResponse(BaseModel):
@@ -96,6 +104,7 @@ async def get_current_weather(
         wind_speed=weather.wind_speed,
         condition=weather.condition,
         condition_code=weather.condition_code,
+        condition_label=weather.condition_label,
         is_day=weather.is_day,
         uv_index=weather.uv_index,
         timestamp=weather.timestamp.isoformat(),
@@ -151,6 +160,7 @@ async def get_weather_forecast(
                 precipitation_chance=day.precipitation_chance,
                 condition=day.condition,
                 condition_code=day.condition_code,
+                condition_label=day.condition_label,
             )
             for day in forecast
         ],

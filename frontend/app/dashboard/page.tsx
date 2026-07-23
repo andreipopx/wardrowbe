@@ -136,7 +136,7 @@ function OutfitOfTheDayHero() {
               <span className="font-display text-3xl">
                 {displayValue(weather.temperature, unit)}{tempSymbol(unit)}
               </span>
-              <span className="text-sm text-muted-foreground capitalize">{weather.condition}</span>
+              <span className="text-sm text-muted-foreground capitalize">{weather.condition_label || weather.condition}</span>
             </div>
             {weather.precipitation_chance > 0 && (
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">

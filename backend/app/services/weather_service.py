@@ -21,11 +21,14 @@ class WeatherData:
     precipitation_chance: int  # Percentage
     precipitation_mm: float  # mm in next hour
     wind_speed: float  # km/h
-    condition: str  # sunny, cloudy, rainy, snowy, etc.
+    condition: str  # sunny, cloudy, rainy, snowy, etc. (English, legacy)
     condition_code: int  # WMO weather code
     is_day: bool
     uv_index: float
     timestamp: datetime
+    # Localized human label derived from condition_code. Optional for
+    # backwards-compat with cache entries written before this field existed.
+    condition_label: str | None = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
@@ -41,6 +44,7 @@ class WeatherData:
             "is_day": self.is_day,
             "uv_index": self.uv_index,
             "timestamp": self.timestamp.isoformat(),
+            "condition_label": self.condition_label,
         }
 
 
@@ -54,6 +58,7 @@ class DailyForecast:
     precipitation_chance: int
     condition: str
     condition_code: int
+    condition_label: str | None = None
 
 
 # WMO Weather interpretation codes
@@ -88,6 +93,50 @@ WMO_CODES = {
     96: "thunderstorm with hail",
     99: "thunderstorm with hail",
 }
+
+
+# Spanish labels for the same WMO codes. Grouped by range so we only surface
+# the higher-level bucket the family cares about (light/heavy → same label).
+# The English `condition` field is kept as-is for callers that still key on it
+# (frontend icon picker, older code); `condition_label` is what UI shows.
+WMO_LABELS_ES = {
+    0: "Despejado",
+    1: "Mayormente despejado",
+    2: "Mayormente despejado",
+    3: "Nublado",
+    45: "Neblina",
+    48: "Neblina",
+    51: "Llovizna ligera",
+    53: "Llovizna ligera",
+    55: "Llovizna ligera",
+    56: "Llovizna helada",
+    57: "Llovizna helada",
+    61: "Lluvia",
+    63: "Lluvia",
+    65: "Lluvia",
+    66: "Lluvia helada",
+    67: "Lluvia helada",
+    71: "Nieve",
+    73: "Nieve",
+    75: "Nieve",
+    77: "Nieve",
+    80: "Chubascos",
+    81: "Chubascos",
+    82: "Chubascos",
+    85: "Chubascos de nieve",
+    86: "Chubascos de nieve",
+    95: "Tormenta",
+    96: "Tormenta",
+    99: "Tormenta",
+}
+WMO_LABEL_ES_UNKNOWN = "Sin datos"
+
+
+def wmo_condition_label_es(code: int | None) -> str:
+    """Return the Spanish label for a WMO weather code."""
+    if code is None:
+        return WMO_LABEL_ES_UNKNOWN
+    return WMO_LABELS_ES.get(code, WMO_LABEL_ES_UNKNOWN)
 
 
 CACHE_TTL = 3600  # 1 hour
@@ -221,6 +270,9 @@ class WeatherService:
             return None
         data = json.loads(raw)
         data["timestamp"] = datetime.fromisoformat(data["timestamp"])
+        # Backfill condition_label for cache entries written before this field
+        # existed; also refresh stale labels if we ever change translations.
+        data["condition_label"] = wmo_condition_label_es(data.get("condition_code"))
         logger.debug(f"Weather cache hit for ({lat}, {lon})")
         return WeatherData(**data)
 
@@ -320,6 +372,7 @@ class WeatherService:
             is_day=bool(current.get("is_day", 1)),
             uv_index=current.get("uv_index", 0),
             timestamp=datetime.utcnow(),
+            condition_label=wmo_condition_label_es(weather_code),
         )
 
         await self._cache_set(latitude, longitude, weather)
@@ -391,6 +444,7 @@ class WeatherService:
                     precipitation_chance=precip_probs[i] if i < len(precip_probs) else 0,
                     condition=self._interpret_weather_code(code),
                     condition_code=code,
+                    condition_label=wmo_condition_label_es(code),
                 )
             )
 
@@ -436,6 +490,8 @@ class WeatherService:
             is_day=True,  # Assume daytime for outfit recommendations
             uv_index=0,  # Not available in daily forecast
             timestamp=datetime.utcnow(),
+            condition_label=tomorrow.condition_label
+            or wmo_condition_label_es(tomorrow.condition_code),
         )
 
     async def check_health(self) -> dict:

@@ -20,6 +20,8 @@ export interface Weather {
   wind_speed: number;
   condition: string;
   condition_code: number;
+  /** Localized human label derived from condition_code. Prefer over `condition` for display. */
+  condition_label?: string | null;
   is_day: boolean;
   uv_index: number;
   timestamp: string;

@@ -141,7 +141,7 @@ function WeatherCard({ weather, isLoading, temperatureUnit }: { weather?: Weathe
                 <span className="text-4xl font-semibold tracking-tight">{displayValue(weather.temperature, temperatureUnit)}</span>
                 <span className="text-lg text-muted-foreground">{temperatureUnit === 'fahrenheit' ? '°F' : '°C'}</span>
               </div>
-              <p className="text-sm text-muted-foreground capitalize">{weather.condition}</p>
+              <p className="text-sm text-muted-foreground capitalize">{weather.condition_label || weather.condition}</p>
             </div>
           </div>
           <div className="text-right text-sm text-muted-foreground space-y-1">
@@ -227,7 +227,8 @@ function WeatherOverrideSection({
           <span>{weather ? t('overrideActive') : t('overrideCta')}</span>
           {weather && (
             <Badge variant="secondary" className="text-xs">
-              {weather.condition} {formatTemp(weather.temperature, temperatureUnit)}
+              {conditions.find((c) => c.value === weather.condition)?.label ?? weather.condition}{' '}
+              {formatTemp(weather.temperature, temperatureUnit)}
             </Badge>
           )}
         </button>
@@ -338,7 +339,7 @@ function OutfitResult({
             <span>{t('rainChanceShort', { pct: outfit.weather.precipitation_chance })}</span>
           </div>
           <Badge variant="outline" className="capitalize">
-            {outfit.weather.condition}
+            {outfit.weather.condition_label || outfit.weather.condition}
           </Badge>
         </div>
       )}
