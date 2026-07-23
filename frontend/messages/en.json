@@ -430,7 +430,11 @@
     "loveIt": "Love it",
     "occasionsQuestion": "What's the occasion?",
     "creatingLook": "Creating your look...",
-    "getSuggestion": "Get Suggestion"
+    "getSuggestion": "Get Suggestion",
+    "songLabel": "What are you listening to today?",
+    "songPlaceholder": "e.g. Mitski — My Love Mine All Mine, or paste a Spotify link",
+    "songHelp": "Optional. The Stylist will use the song's mood as an extra layer of inspiration.",
+    "inspiredBy": "Inspired by"
   },
   "settings": {
     "title": "Settings",

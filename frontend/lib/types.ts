@@ -293,6 +293,13 @@ export interface FeedbackSummary {
 
 export type OutfitSource = 'scheduled' | 'on_demand' | 'manual' | 'pairing';
 
+export interface MusicInspiration {
+  artist?: string;
+  track?: string;
+  label: string;
+  tags: string[];
+}
+
 export interface Outfit {
   id: string;
   occasion: string;
@@ -308,6 +315,7 @@ export interface Outfit {
   family_ratings?: FamilyRating[];
   family_rating_average?: number;
   family_rating_count?: number;
+  music_inspiration?: MusicInspiration;
   created_at: string;
 }
 
@@ -322,6 +330,7 @@ export interface SuggestRequest {
   };
   exclude_items?: string[];
   include_items?: string[];
+  song_query?: string;
 }
 
 // Pairing types

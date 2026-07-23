@@ -24,6 +24,11 @@ from app.models.preference import UserPreference
 from app.models.user import User
 from app.services.ai_service import AIService, require_internal_ai
 from app.services.item_scorer import get_season, score_items
+from app.services.music_service import (
+    SongContext,
+    enrich_song,
+    format_song_context_for_prompt,
+)
 from app.services.suggestion_cache import pop_suggestion, push_suggestions
 from app.services.weather_service import (
     GeocodingServiceError,
@@ -643,6 +648,7 @@ class RecommendationService:
         time_of_day: str | None = None,
         single_outfit: bool = False,
         scheduled_date: date | None = None,
+        song_query: str | None = None,
     ) -> Outfit:
         # Guard first so deferral is unconditional, before any location/weather work.
         require_internal_ai("text")
@@ -653,8 +659,23 @@ class RecommendationService:
         if not time_of_day:
             time_of_day = get_time_of_day(user)
 
+        # A song input personalizes the outfit — skip the shared suggestion cache
+        # so we don't serve stale un-inspired suggestions and don't poison the cache.
+        song_context: SongContext | None = None
+        if song_query:
+            try:
+                song_context = await enrich_song(song_query)
+            except Exception as e:
+                logger.warning(f"Music enrichment failed for query {song_query!r}: {e}")
+                song_context = None
+
         # Determine cache eligibility before auto-merge
-        use_cache = not exclude_items and not include_items and not single_outfit
+        use_cache = (
+            not exclude_items
+            and not include_items
+            and not single_outfit
+            and song_context is None
+        )
 
         # Auto-exclude today's rejected items for this occasion
         rejected_ids = await self._get_today_rejected_item_ids(user, occasion)
@@ -800,6 +821,10 @@ class RecommendationService:
             body_measurements=getattr(user, "body_measurements", None),
         )
 
+        song_context_text = (
+            format_song_context_for_prompt(song_context) if song_context else ""
+        )
+
         prompt = RECOMMENDATION_PROMPT.format(
             occasion=occasion,
             time_of_day=time_of_day,
@@ -810,6 +835,7 @@ class RecommendationService:
             preferences_text=preferences_text,
             items_text=items_text,
             mandatory_items_section=mandatory_items_section,
+            song_context_text=song_context_text,
         )
 
         # For single_outfit mode (notifications), replace multi-outfit format
@@ -833,6 +859,16 @@ class RecommendationService:
             )
             logger.debug(f"AI raw response: {result.content[:500]}")
 
+            music_payload: dict | None = None
+            if song_context:
+                music_payload = {
+                    "artist": song_context.artist,
+                    "track": song_context.track,
+                    "label": song_context.display_label,
+                    "tags": (song_context.tags or song_context.genres)[:6],
+                    "source": song_context.source,
+                }
+
             if single_outfit:
                 outfit_data = self._parse_ai_response(result.content)
                 if isinstance(outfit_data, list) and len(outfit_data) > 0:
@@ -841,6 +877,8 @@ class RecommendationService:
                     raise ValueError(f"Expected dict, got {type(outfit_data)}")
                 outfit_data["_ai_model"] = result.model
                 outfit_data["_ai_endpoint"] = result.endpoint
+                if music_payload:
+                    outfit_data["_music_inspiration"] = music_payload
                 return await self._materialize_outfit(
                     outfit_data,
                     user,
@@ -857,6 +895,8 @@ class RecommendationService:
             first = outfit_list[0]
             first["_ai_model"] = result.model
             first["_ai_endpoint"] = result.endpoint
+            if music_payload:
+                first["_music_inspiration"] = music_payload
 
             outfit = await self._materialize_outfit(
                 first,
@@ -868,8 +908,9 @@ class RecommendationService:
                 scheduled_date=scheduled_date,
             )
 
-            # Cache remaining outfits for "Try Another"
-            if len(outfit_list) > 1:
+            # Cache remaining outfits for "Try Another" — skip when the request
+            # was music-inspired since those suggestions are contextual to the song.
+            if len(outfit_list) > 1 and not music_payload:
                 serializable_map = {str(k): str(v) for k, v in number_map.items()}
                 to_cache = []
                 for od in outfit_list[1:]:

@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     openmeteo_url: str = Field(default="https://api.open-meteo.com/v1")
     geocoding_user_agent: str | None = Field(default=None)
 
+    # Music enrichment (Stylist mood input)
+    lastfm_api_key: str | None = Field(default=None)
+
     # Notifications - default ntfy channel (used when user has none configured)
     ntfy_server: str | None = None
     ntfy_topic: str | None = None

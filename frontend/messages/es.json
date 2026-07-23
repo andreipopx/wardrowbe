@@ -430,7 +430,11 @@
     "loveIt": "Me encanta",
     "occasionsQuestion": "¿Cuál es la ocasión?",
     "creatingLook": "Creando tu look...",
-    "getSuggestion": "Sugerir"
+    "getSuggestion": "Sugerir",
+    "songLabel": "¿Qué escuchas hoy?",
+    "songPlaceholder": "Ej: Mitski — My Love Mine All Mine, o pega un link de Spotify",
+    "songHelp": "Opcional. El Estilista usará el mood de la canción como capa de inspiración.",
+    "inspiredBy": "Inspirado en"
   },
   "settings": {
     "title": "Ajustes",

@@ -8,6 +8,7 @@ CONTEXTO PARA HOY:
 - Clima: {temperature}°C (sensación {feels_like}°C), {condition}, {precipitation_chance}% probabilidad de lluvia
 - Los ítems vienen pre-ordenados por afinidad. Prefiere los de arriba de la lista.
 {preferences_text}
+{song_context_text}
 
 PRINCIPIOS DE STYLING (aplícalos con criterio, no los recites):
 
@@ -35,6 +36,12 @@ Momento del día:
 - Tarde: versátil, transiciona entre casual y arreglado
 - Noche: tonos más profundos, tejidos más nobles, detalles refinados
 - Salida nocturna: statement pieces, paletas más oscuras, más atrevimiento
+
+Si viene CONTEXTO MUSICAL:
+- La canción es una capa más de mood, no un disfraz. Traduce estética, no letra.
+- Deja que los tags emocionales y el género inclinen paleta, textura y silueta — sutilmente.
+- Ejemplos: "Mitski — Nobody" (indie folk, melancólico, dreamy) → capas, tonos tierra, texturas cálidas, silueta suave. "Björk — Hyperballad" (art pop, experimental, etéreo) → algo escultural, un color inesperado, una textura que llame la atención. "Rosalía — Malamente" (flamenco, urban, statement) → contraste alto, una prenda dominante, actitud.
+- Menciona la canción de forma natural en UNO de los highlights o en el styling_tip cuando encaje; no fuerces la referencia si el look ya se sostiene solo.
 
 PRENDAS DISPONIBLES:
 {items_text}

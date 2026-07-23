@@ -31,6 +31,7 @@ import {
   Snowflake,
   CalendarDays,
   CloudLightning,
+  Music,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -349,6 +350,17 @@ function OutfitResult({
             <Sparkles className="h-5 w-5 text-primary" />
             <h3 className="font-semibold">{t('yourOutfit')}</h3>
           </div>
+          {outfit.music_inspiration && (
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-background/60 px-3 py-1 text-xs text-foreground">
+              <Music className="h-3.5 w-3.5 text-gold" />
+              <span className="label-editorial text-[10px] tracking-widest text-gold">
+                {t('inspiredBy')}
+              </span>
+              <span className="font-editorial italic">
+                {outfit.music_inspiration.label}
+              </span>
+            </div>
+          )}
           {outfit.reasoning && (
             <p className="mt-2 text-base font-medium text-foreground">{outfit.reasoning}</p>
           )}
@@ -437,6 +449,7 @@ export default function SuggestPage() {
   const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null);
   const [occasionInitialized, setOccasionInitialized] = useState(false);
   const [weatherOverride, setWeatherOverride] = useState<WeatherOverride | null>(null);
+  const [songQuery, setSongQuery] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [outfit, setOutfit] = useState<Outfit | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -479,6 +492,11 @@ export default function SuggestPage() {
           precipitation_chance: weatherOverride.condition === 'rainy' ? 80 : weatherOverride.condition === 'cloudy' ? 30 : 10,
           condition: weatherOverride.condition,
         };
+      }
+
+      const trimmedSong = songQuery.trim();
+      if (trimmedSong) {
+        request.song_query = trimmedSong;
       }
 
       const result = await api.post<Outfit>('/outfits/suggest', request);
@@ -583,6 +601,29 @@ export default function SuggestPage() {
                 onChange={setWeatherOverride}
                 temperatureUnit={temperatureUnit}
               />
+
+              {/* Song input — optional mood/aesthetic reference */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="song-query"
+                  className="font-display text-sm flex items-center gap-2 text-foreground"
+                >
+                  <Music className="h-4 w-4 text-gold" />
+                  {t('songLabel')}
+                </label>
+                <input
+                  id="song-query"
+                  type="text"
+                  value={songQuery}
+                  onChange={(e) => setSongQuery(e.target.value)}
+                  placeholder={t('songPlaceholder')}
+                  maxLength={280}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:font-editorial placeholder:italic placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
+                <p className="text-xs text-muted-foreground/80 font-editorial italic">
+                  {t('songHelp')}
+                </p>
+              </div>
 
               {/* Generate button */}
               <div className="pt-2">

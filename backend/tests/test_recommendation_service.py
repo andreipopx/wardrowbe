@@ -112,6 +112,7 @@ class TestPromptTemplate:
             preferences_text="",
             items_text="[1] shirt | blue | cotton",
             mandatory_items_section="",
+            song_context_text="",
         )
         assert "evening" in formatted
         assert "casual" in formatted
@@ -131,6 +132,7 @@ class TestPromptTemplate:
                 preferences_text="",
                 items_text="[1] shirt",
                 mandatory_items_section="",
+                song_context_text="",
             )
             assert tod in formatted
 

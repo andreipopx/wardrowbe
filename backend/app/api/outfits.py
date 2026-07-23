@@ -111,6 +111,22 @@ class SuggestRequest(BaseModel):
     weather_override: WeatherOverrideRequest | None = None
     exclude_items: list[UUID] = Field(default_factory=list, description="Items to exclude")
     include_items: list[UUID] = Field(default_factory=list, description="Items to include")
+    song_query: str | None = Field(
+        default=None,
+        max_length=300,
+        description=(
+            "Optional song reference (free text or Spotify URL). The Stylist will "
+            "use the song's mood/tags as an extra styling input."
+        ),
+    )
+
+    @field_validator("song_query")
+    @classmethod
+    def _clean_song_query(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        v = v.strip()
+        return v or None
 
 
 class OutfitItemResponse(BaseModel):
@@ -177,6 +193,13 @@ class FamilyRatingResponse(BaseModel):
     created_at: datetime
 
 
+class MusicInspiration(BaseModel):
+    artist: str | None = None
+    track: str | None = None
+    label: str
+    tags: list[str] = Field(default_factory=list)
+
+
 class OutfitResponse(BaseModel):
     id: UUID
     occasion: str
@@ -196,6 +219,7 @@ class OutfitResponse(BaseModel):
     family_rating_average: float | None = None
     family_rating_count: int | None = None
     is_starter_suggestion: bool = False
+    music_inspiration: MusicInspiration | None = None
     created_at: datetime
 
 
@@ -330,10 +354,19 @@ def outfit_to_response(
         )
 
     highlights = None
+    music_inspiration = None
     if outfit.ai_raw_response and isinstance(outfit.ai_raw_response, dict):
         raw_highlights = outfit.ai_raw_response.get("highlights")
         if raw_highlights and isinstance(raw_highlights, list):
             highlights = raw_highlights
+        raw_music = outfit.ai_raw_response.get("_music_inspiration")
+        if isinstance(raw_music, dict) and raw_music.get("label"):
+            music_inspiration = MusicInspiration(
+                artist=raw_music.get("artist"),
+                track=raw_music.get("track"),
+                label=raw_music["label"],
+                tags=raw_music.get("tags") or [],
+            )
 
     family_ratings_list = None
     family_rating_average = None
@@ -376,6 +409,7 @@ def outfit_to_response(
         family_rating_average=family_rating_average,
         family_rating_count=family_rating_count,
         is_starter_suggestion=is_starter_suggestion,
+        music_inspiration=music_inspiration,
         created_at=outfit.created_at,
     )
 
@@ -421,6 +455,7 @@ async def suggest_outfit(
             exclude_items=request.exclude_items,
             include_items=request.include_items,
             time_of_day=request.time_of_day,
+            song_query=request.song_query,
         )
     except InsufficientWardrobeError as e:
         raise HTTPException(
