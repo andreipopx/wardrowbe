@@ -11,8 +11,21 @@ function useSetTokenIfAvailable() {
   }
 }
 
+export interface StudioItemLayoutPayload {
+  item_id: string;
+  pos_x?: number | null;
+  pos_y?: number | null;
+  scale?: number;
+  rotation?: number;
+  z_index?: number;
+}
+
 export interface StudioCreatePayload {
   items: string[];
+  // When present, carries the canvas positions the user arranged. Backend
+  // uses this to persist the layout; older/simpler flows can omit it and the
+  // backend falls back to canonical role ordering.
+  items_layout?: StudioItemLayoutPayload[];
   occasion: string;
   name?: string;
   scheduled_for?: string | null;
@@ -87,6 +100,7 @@ export function useWearToday(templateId: string) {
 export interface PatchOutfitPayload {
   name?: string;
   items?: string[];
+  items_layout?: StudioItemLayoutPayload[];
 }
 
 export function usePatchOutfit() {

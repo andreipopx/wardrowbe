@@ -24,6 +24,12 @@ export interface OutfitItem {
   image_url?: string;
   layer_type: string | null;
   position: number;
+  // Free-form canvas layout — null pos_x/pos_y means "no spatial position, grid fallback".
+  pos_x?: number | null;
+  pos_y?: number | null;
+  scale?: number;
+  rotation?: number;
+  z_index?: number;
 }
 
 export interface WoreInsteadItem {

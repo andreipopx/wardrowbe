@@ -32,6 +32,7 @@ from app.services.recommendation_service import (
     RecommendationService,
 )
 from app.services.studio_service import (
+    ItemLayoutInput,
     ItemOwnershipError,
     OutfitNotTemplateError,
     OutfitWornImmutableError,
@@ -140,6 +141,12 @@ class OutfitItemResponse(BaseModel):
     thumbnail_path: str | None = None
     layer_type: str | None = None
     position: int
+    # Free-form canvas layout (null pos_x/pos_y means "no spatial layout, fall back to grid")
+    pos_x: float | None = None
+    pos_y: float | None = None
+    scale: float = 1.0
+    rotation: float = 0.0
+    z_index: int = 0
 
     @computed_field
     @property
@@ -337,6 +344,11 @@ def outfit_to_response(
                 thumbnail_path=item.thumbnail_path,
                 layer_type=outfit_item.layer_type,
                 position=outfit_item.position,
+                pos_x=outfit_item.pos_x,
+                pos_y=outfit_item.pos_y,
+                scale=outfit_item.scale if outfit_item.scale is not None else 1.0,
+                rotation=outfit_item.rotation if outfit_item.rotation is not None else 0.0,
+                z_index=outfit_item.z_index if outfit_item.z_index is not None else 0,
             )
         )
 
@@ -990,10 +1002,34 @@ def _check_studio_kill_switch() -> None:
         )
 
 
+class StudioItemLayout(BaseModel):
+    """Position + transform of a single item on the outfit canvas.
+
+    Coordinates are normalized [0..1] relative to the canvas box, so they stay
+    correct regardless of the rendering size. All fields are optional so a
+    client that only wants "add this item, no specific position" can send just
+    {item_id}.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    item_id: UUID
+    pos_x: float | None = Field(default=None, ge=-0.5, le=1.5)
+    pos_y: float | None = Field(default=None, ge=-0.5, le=1.5)
+    scale: float = Field(default=1.0, ge=0.2, le=3.0)
+    rotation: float = Field(default=0.0, ge=-360.0, le=360.0)
+    z_index: int = Field(default=0, ge=0, le=999)
+
+
 class StudioCreateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     items: list[UUID] = Field(min_length=1, max_length=20)
+    # When present, `items_layout` takes precedence and carries the canvas positions.
+    # `items` still travels as a plain UUID list for older clients / analytics.
+    items_layout: Annotated[
+        list[StudioItemLayout] | None, Field(min_length=1, max_length=20)
+    ] = None
     occasion: str = Field(max_length=50)
     name: Annotated[str | None, Field(max_length=100)] = None
     scheduled_for: date | None = None
@@ -1037,6 +1073,51 @@ class PatchOutfitRequest(BaseModel):
 
     name: Annotated[str | None, Field(max_length=100)] = None
     items: Annotated[list[UUID] | None, Field(min_length=1, max_length=20)] = None
+    # When present, `items_layout` takes precedence and carries the canvas positions.
+    items_layout: Annotated[
+        list[StudioItemLayout] | None, Field(min_length=1, max_length=20)
+    ] = None
+
+
+def _to_service_layout(lo: "StudioItemLayout") -> ItemLayoutInput:
+    return ItemLayoutInput(
+        item_id=lo.item_id,
+        pos_x=lo.pos_x,
+        pos_y=lo.pos_y,
+        scale=lo.scale,
+        rotation=lo.rotation,
+        z_index=lo.z_index,
+    )
+
+
+def _resolve_item_layouts(
+    items: list[UUID] | None,
+    items_layout: list[StudioItemLayout] | None,
+) -> list[ItemLayoutInput] | None:
+    """Normalize the (items, items_layout) pair into a single list of layouts.
+
+    - If `items_layout` is provided, it wins and defines both the set and the
+      spatial positions. `items` (if also sent) must match — otherwise raise 400
+      so the frontend catches accidental drift between the two fields.
+    - If only `items` is provided (older/simpler client), wrap each UUID in a
+      layout with no coordinates so downstream code has one shape to handle.
+    - If both are None, return None (caller decides what that means).
+    """
+    if items_layout is not None:
+        if items is not None:
+            layout_ids = [lo.item_id for lo in items_layout]
+            if sorted(layout_ids) != sorted(items):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "error_code": "OUTFIT_ITEMS_MISMATCH",
+                        "message": "items and items_layout reference different sets",
+                    },
+                )
+        return [_to_service_layout(lo) for lo in items_layout]
+    if items is not None:
+        return [ItemLayoutInput(item_id=iid) for iid in items]
+    return None
 
 
 async def _run_learning_safely(db: AsyncSession, outfit_id: UUID, user_id: UUID) -> None:
@@ -1057,6 +1138,8 @@ async def create_studio_outfit(
         str(current_user.id), "studio_create", max_requests=20, window_seconds=60
     )
 
+    layouts = _resolve_item_layouts(request.items, request.items_layout)
+
     service = StudioService(db)
     try:
         outfit = await service.create_from_scratch(
@@ -1067,6 +1150,7 @@ async def create_studio_outfit(
             scheduled_for=request.scheduled_for,
             mark_worn=request.mark_worn,
             source_item_id=request.source_item_id,
+            layouts=layouts,
         )
     except ItemOwnershipError:
         raise HTTPException(
@@ -1212,11 +1296,17 @@ async def patch_outfit_endpoint(
         str(current_user.id), "patch_outfit", max_requests=30, window_seconds=60
     )
 
-    if request.name is None and request.items is None:
+    if request.name is None and request.items is None and request.items_layout is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"error_code": "PATCH_EMPTY", "message": "No fields provided"},
         )
+
+    layouts = (
+        _resolve_item_layouts(request.items, request.items_layout)
+        if (request.items is not None or request.items_layout is not None)
+        else None
+    )
 
     service = StudioService(db)
     try:
@@ -1225,6 +1315,7 @@ async def patch_outfit_endpoint(
             outfit_id=outfit_id,
             name=request.name,
             items=request.items,
+            layouts=layouts,
         )
     except LookupError:
         raise HTTPException(

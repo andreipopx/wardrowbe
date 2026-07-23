@@ -191,11 +191,19 @@ describe('draft-storage', () => {
     Object.defineProperty(window, 'localStorage', { value: mockStorage, writable: true });
   });
 
-  it('saves and loads a draft', () => {
-    saveDraft({ items: ['a', 'b'], name: 'My draft', occasion: 'casual' });
+  it('saves and loads a draft with canvas layout', () => {
+    saveDraft({
+      items: [
+        { id: 'a', pos_x: 0.3, pos_y: 0.4, scale: 1, rotation: 0, z_index: 1 },
+        { id: 'b', pos_x: 0.7, pos_y: 0.6, scale: 1, rotation: 0, z_index: 2 },
+      ],
+      name: 'My draft',
+      occasion: 'casual',
+    });
     const loaded = loadDraft();
     expect(loaded).not.toBeNull();
-    expect(loaded!.items).toEqual(['a', 'b']);
+    expect(loaded!.items.map((i) => i.id)).toEqual(['a', 'b']);
+    expect(loaded!.items[0].pos_x).toBe(0.3);
     expect(loaded!.name).toBe('My draft');
     expect(loaded!.occasion).toBe('casual');
   });
@@ -205,17 +213,173 @@ describe('draft-storage', () => {
   });
 
   it('clears draft', () => {
-    saveDraft({ items: ['a'], name: '', occasion: null });
+    saveDraft({ items: [{ id: 'a' }], name: '', occasion: null });
     clearDraft();
     expect(loadDraft()).toBeNull();
   });
 
-  it('expired drafts return null', () => {
-    saveDraft({ items: ['a'], name: '', occasion: null });
-    const raw = JSON.parse(store['studio_draft_v1']);
+  it('expired v2 drafts return null', () => {
+    saveDraft({ items: [{ id: 'a' }], name: '', occasion: null });
+    const raw = JSON.parse(store['studio_draft_v2']);
     raw.timestamp = Date.now() - 25 * 60 * 60 * 1000;
-    store['studio_draft_v1'] = JSON.stringify(raw);
+    store['studio_draft_v2'] = JSON.stringify(raw);
     expect(loadDraft()).toBeNull();
+  });
+
+  it('migrates a legacy v1 draft (items as string[]) on read', () => {
+    store['studio_draft_v1'] = JSON.stringify({
+      items: ['x', 'y'],
+      name: 'legacy',
+      occasion: 'work',
+      timestamp: Date.now(),
+    });
+    const loaded = loadDraft();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.items.map((i) => i.id)).toEqual(['x', 'y']);
+    // Layout is intentionally empty on legacy migration — the reducer's
+    // ensureLayout step re-hydrates default positions when the user resumes.
+    expect(loaded!.items[0].pos_x).toBeUndefined();
+    expect(loaded!.name).toBe('legacy');
+  });
+
+  it('clearDraft wipes both v1 and v2 keys', () => {
+    store['studio_draft_v1'] = JSON.stringify({
+      items: ['x'],
+      name: '',
+      occasion: null,
+      timestamp: Date.now(),
+    });
+    saveDraft({ items: [{ id: 'y' }], name: '', occasion: null });
+    clearDraft();
+    expect(store['studio_draft_v1']).toBeUndefined();
+    expect(store['studio_draft_v2']).toBeUndefined();
+  });
+});
+
+describe('studioReducer canvas layout', () => {
+  it('ADD_ITEM assigns a default canvas position', () => {
+    const item = makeItem('1', 'shirt');
+    const state = studioReducer(INITIAL_STUDIO_STATE, { type: 'ADD_ITEM', item });
+    const added = state.items[0];
+    expect(added.pos_x).toBeGreaterThan(0);
+    expect(added.pos_x).toBeLessThan(1);
+    expect(added.pos_y).toBeGreaterThan(0);
+    expect(added.pos_y).toBeLessThan(1);
+    expect(added.z_index).toBeGreaterThan(0);
+  });
+
+  it('items in different roles land at different default Y positions', () => {
+    let state = studioReducer(INITIAL_STUDIO_STATE, {
+      type: 'ADD_ITEM',
+      item: makeItem('top', 'shirt'),
+    });
+    state = studioReducer(state, {
+      type: 'ADD_ITEM',
+      item: makeItem('bot', 'jeans'),
+    });
+    const top = state.items.find((i) => i.id === 'top');
+    const bot = state.items.find((i) => i.id === 'bot');
+    expect(top!.pos_y).toBeLessThan(bot!.pos_y!);
+  });
+
+  it('MOVE_ITEM updates coordinates without touching other items', () => {
+    let state = studioReducer(INITIAL_STUDIO_STATE, {
+      type: 'ADD_ITEM',
+      item: makeItem('1', 'shirt'),
+    });
+    state = studioReducer(state, {
+      type: 'ADD_ITEM',
+      item: makeItem('2', 'jeans'),
+    });
+    const otherBefore = state.items.find((i) => i.id === '2');
+    state = studioReducer(state, {
+      type: 'MOVE_ITEM',
+      itemId: '1',
+      pos_x: 0.25,
+      pos_y: 0.75,
+    });
+    const moved = state.items.find((i) => i.id === '1');
+    const otherAfter = state.items.find((i) => i.id === '2');
+    expect(moved!.pos_x).toBe(0.25);
+    expect(moved!.pos_y).toBe(0.75);
+    expect(otherAfter!.pos_x).toBe(otherBefore!.pos_x);
+    expect(otherAfter!.pos_y).toBe(otherBefore!.pos_y);
+  });
+
+  it('BRING_TO_FRONT raises z_index above every other item', () => {
+    let state = studioReducer(INITIAL_STUDIO_STATE, {
+      type: 'ADD_ITEM',
+      item: makeItem('1', 'shirt'),
+    });
+    state = studioReducer(state, {
+      type: 'ADD_ITEM',
+      item: makeItem('2', 'jacket'),
+    });
+    state = studioReducer(state, {
+      type: 'ADD_ITEM',
+      item: makeItem('3', 'sneakers'),
+    });
+    state = studioReducer(state, { type: 'BRING_TO_FRONT', itemId: '1' });
+    const brought = state.items.find((i) => i.id === '1');
+    const others = state.items.filter((i) => i.id !== '1');
+    for (const o of others) {
+      expect(brought!.z_index!).toBeGreaterThan(o.z_index ?? 0);
+    }
+  });
+
+  it('SEND_TO_BACK drops z_index below every other item', () => {
+    let state = studioReducer(INITIAL_STUDIO_STATE, {
+      type: 'ADD_ITEM',
+      item: makeItem('1', 'shirt'),
+    });
+    state = studioReducer(state, {
+      type: 'ADD_ITEM',
+      item: makeItem('2', 'jacket'),
+    });
+    state = studioReducer(state, { type: 'SEND_TO_BACK', itemId: '2' });
+    const sent = state.items.find((i) => i.id === '2');
+    const others = state.items.filter((i) => i.id !== '2');
+    for (const o of others) {
+      expect(sent!.z_index!).toBeLessThan(o.z_index ?? 0);
+    }
+  });
+
+  it('LOAD rehydrates default layout for legacy items without coordinates', () => {
+    const state = studioReducer(INITIAL_STUDIO_STATE, {
+      type: 'LOAD',
+      state: {
+        items: [makeItem('1', 'shirt'), makeItem('2', 'jeans')],
+      },
+    });
+    for (const it of state.items) {
+      expect(it.pos_x).toBeGreaterThan(0);
+      expect(it.pos_y).toBeGreaterThan(0);
+    }
+  });
+
+  it('LOAD preserves layout for items that already have coordinates', () => {
+    const item: StudioItem = {
+      id: '1',
+      type: 'shirt',
+      name: null,
+      thumbnail_url: null,
+      image_url: null,
+      primary_color: null,
+      pos_x: 0.11,
+      pos_y: 0.99,
+      scale: 1.5,
+      rotation: 15,
+      z_index: 5,
+    };
+    const state = studioReducer(INITIAL_STUDIO_STATE, {
+      type: 'LOAD',
+      state: { items: [item] },
+    });
+    expect(state.items[0].pos_x).toBe(0.11);
+    expect(state.items[0].pos_y).toBe(0.99);
+    expect(state.items[0].scale).toBe(1.5);
+    expect(state.items[0].rotation).toBe(15);
+    expect(state.items[0].z_index).toBe(5);
   });
 });
 

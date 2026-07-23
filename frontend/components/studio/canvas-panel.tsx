@@ -1,73 +1,305 @@
 'use client';
 
+import { useCallback, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
-import { X } from 'lucide-react';
+import {
+  DndContext,
+  MouseSensor,
+  TouchSensor,
+  useDraggable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+import { ArrowDownToLine, ArrowUpFromLine, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
-import { ITEM_ROLE } from '@/lib/studio/canonical-order';
 import { cn } from '@/lib/utils';
 import type { StudioItem } from '@/lib/studio/editor-state';
 
 interface CanvasPanelProps {
   items: StudioItem[];
   onRemove: (itemId: string) => void;
+  onMove: (itemId: string, pos_x: number, pos_y: number) => void;
+  onBringToFront: (itemId: string) => void;
+  onSendToBack: (itemId: string) => void;
 }
 
-function roleLabel(type: string): string {
-  const role = ITEM_ROLE[type];
-  if (!role) return type;
-  return role.replace('_', ' ');
+// Canvas is a 3:4 portrait — lookbook / magazine page proportions. Coordinates
+// on items are normalized [0..1] against this box so they survive resizes.
+const CANVAS_MARGIN = 0.04;
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, v));
 }
 
-export function CanvasPanel({ items, onRemove }: CanvasPanelProps) {
+interface DraggableCanvasItemProps {
+  item: StudioItem;
+  isSelected: boolean;
+  onSelect: (itemId: string) => void;
+}
+
+function DraggableCanvasItem({
+  item,
+  isSelected,
+  onSelect,
+}: DraggableCanvasItemProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({ id: item.id });
+
+  // Compose the absolute position (percent, from item state) with the live
+  // drag transform (pixels, from @dnd-kit). We anchor by the item's center
+  // via translate(-50%, -50%) so pos_x/pos_y describe the visual center.
+  const style: React.CSSProperties = {
+    position: 'absolute',
+    left: `${(item.pos_x ?? 0.5) * 100}%`,
+    top: `${(item.pos_y ?? 0.5) * 100}%`,
+    transform: `translate(-50%, -50%) ${CSS.Translate.toString(transform) ?? ''} scale(${item.scale ?? 1}) rotate(${item.rotation ?? 0}deg)`,
+    zIndex: (isDragging ? 999 : item.z_index ?? 0) + (isSelected ? 100 : 0),
+    touchAction: 'none',
+    cursor: isDragging ? 'grabbing' : 'grab',
+    transition: isDragging ? 'none' : 'box-shadow 200ms, filter 200ms',
+    willChange: 'transform',
+  };
+
+  const src = item.thumbnail_url ?? item.image_url ?? null;
+
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      style={style}
+      {...listeners}
+      {...attributes}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(item.id);
+      }}
+      className={cn(
+        'select-none outline-none',
+        'w-[26%] max-w-[140px] aspect-square',
+        'rounded-sm bg-transparent',
+        isSelected && 'ring-2 ring-primary/70 ring-offset-2 ring-offset-background',
+        isDragging && 'opacity-90 drop-shadow-[0_10px_20px_rgba(0,0,0,0.25)]'
+      )}
+      aria-label={item.name ?? item.type}
+      aria-pressed={isSelected}
+    >
+      {src ? (
+        <Image
+          src={src}
+          alt={item.name ?? item.type}
+          fill
+          className="object-contain pointer-events-none drop-shadow-[0_3px_6px_rgba(0,0,0,0.18)]"
+          sizes="(max-width: 640px) 30vw, 20vw"
+          draggable={false}
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-muted rounded-sm">
+          <span className="text-xs text-muted-foreground">{item.type}</span>
+        </div>
+      )}
+    </button>
+  );
+}
+
+/**
+ * Editorial free-form canvas for arranging outfit items. iPhone-first: a
+ * long-press starts the drag on touch so scrolling still works over the panel.
+ */
+export function CanvasPanel({
+  items,
+  onRemove,
+  onMove,
+  onBringToFront,
+  onSendToBack,
+}: CanvasPanelProps) {
+  const t = useTranslations('studioCanvas');
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 3 } }),
+    // Long-press so a swipe over the canvas can still scroll on iPhone.
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    })
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const target = items.find((i) => i.id === event.active.id);
+      if (!target) return;
+      const dx = event.delta.x / rect.width;
+      const dy = event.delta.y / rect.height;
+      const nextX = clamp(
+        (target.pos_x ?? 0.5) + dx,
+        CANVAS_MARGIN,
+        1 - CANVAS_MARGIN
+      );
+      const nextY = clamp(
+        (target.pos_y ?? 0.5) + dy,
+        CANVAS_MARGIN,
+        1 - CANVAS_MARGIN
+      );
+      onMove(String(event.active.id), nextX, nextY);
+    },
+    [items, onMove]
+  );
+
+  const selected = useMemo(
+    () => items.find((i) => i.id === selectedId) ?? null,
+    [items, selectedId]
+  );
+
   if (items.length === 0) {
     return (
-      <div className="min-h-[240px] rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center p-6">
-        <p className="text-sm text-muted-foreground text-center">
-          Tap items below to start building your outfit
-        </p>
+      <div
+        className={cn(
+          'relative w-full max-w-md mx-auto aspect-[3/4] rounded-sm',
+          'bg-card border-double border-2 border-primary/20',
+          'flex items-center justify-center p-8'
+        )}
+      >
+        <div className="text-center space-y-2">
+          <p className="font-editorial italic text-lg text-muted-foreground">
+            {t('emptyTitle')}
+          </p>
+          <p className="text-xs text-muted-foreground/80">{t('emptyHint')}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border bg-muted/10 p-4">
-      <div className="flex flex-wrap gap-3">
-        {items.map((item) => (
-          <div key={item.id} className="relative w-24 shrink-0">
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div className="w-full max-w-md mx-auto space-y-2">
+        <div
+          ref={canvasRef}
+          onClick={() => setSelectedId(null)}
+          className={cn(
+            'relative w-full aspect-[3/4] rounded-sm overflow-hidden',
+            'bg-card border-double border-2 border-primary/20',
+            'shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]'
+          )}
+        >
+          {items.map((item) => (
+            <DraggableCanvasItem
+              key={item.id}
+              item={item}
+              isSelected={selectedId === item.id}
+              onSelect={setSelectedId}
+            />
+          ))}
+        </div>
+
+        {selected && (
+          <div
+            role="toolbar"
+            aria-label={t('toolbarLabel')}
+            className={cn(
+              'flex items-center justify-center gap-1 py-1.5 px-2',
+              'rounded-full bg-foreground text-background shadow-lg',
+              'mx-auto w-fit'
+            )}
+          >
             <button
               type="button"
-              onClick={() => onRemove(item.id)}
-              className={cn(
-                'absolute -top-2 -right-2 z-10 rounded-full bg-destructive text-destructive-foreground',
-                'p-1 shadow-md hover:bg-destructive/90 focus:outline-none focus:ring-2 focus:ring-destructive/50'
-              )}
-              aria-label={`Remove ${item.name || item.type}`}
+              onClick={() => onBringToFront(selected.id)}
+              className="p-1.5 rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-gold/60"
+              aria-label={t('bringToFront')}
+              title={t('bringToFront')}
             >
-              <X className="h-3 w-3" />
+              <ArrowUpFromLine className="h-4 w-4" />
             </button>
-            <div className="aspect-square rounded-lg overflow-hidden border-2 border-primary/50 bg-background">
-              {item.thumbnail_url || item.image_url ? (
-                <Image
-                  src={(item.thumbnail_url || item.image_url)!}
-                  alt={item.name || item.type}
-                  width={96}
-                  height={96}
-                  className="object-cover w-full h-full"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-xs text-muted-foreground">
-                    {item.type}
-                  </span>
-                </div>
-              )}
-            </div>
-            <p className="text-[10px] text-center text-muted-foreground mt-1 truncate capitalize">
-              {roleLabel(item.type)}
-            </p>
+            <button
+              type="button"
+              onClick={() => onSendToBack(selected.id)}
+              className="p-1.5 rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-gold/60"
+              aria-label={t('sendToBack')}
+              title={t('sendToBack')}
+            >
+              <ArrowDownToLine className="h-4 w-4" />
+            </button>
+            <span className="mx-1 text-xs text-background/70 font-editorial italic max-w-[8rem] truncate">
+              {selected.name ?? selected.type}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                onRemove(selected.id);
+                setSelectedId(null);
+              }}
+              className="p-1.5 rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-destructive/60"
+              aria-label={t('remove')}
+              title={t('remove')}
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-        ))}
+        )}
+
+        {!selected && (
+          <p className="text-center text-[11px] text-muted-foreground/80 font-editorial italic">
+            {t('hint')}
+          </p>
+        )}
       </div>
+    </DndContext>
+  );
+}
+
+/**
+ * Read-only version of the canvas used on the outfit detail page — renders
+ * items at their saved coordinates so the arrangement the user built survives
+ * navigation. Falls back to `null` if the outfit has no spatial layout (the
+ * caller should render the classic grid instead).
+ */
+export function CanvasPreview({ items }: { items: StudioItem[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div
+      className={cn(
+        'relative w-full max-w-md mx-auto aspect-[3/4] rounded-sm overflow-hidden',
+        'bg-card border-double border-2 border-primary/20'
+      )}
+    >
+      {items.map((item) => {
+        const src = item.thumbnail_url ?? item.image_url ?? null;
+        return (
+          <div
+            key={item.id}
+            style={{
+              position: 'absolute',
+              left: `${(item.pos_x ?? 0.5) * 100}%`,
+              top: `${(item.pos_y ?? 0.5) * 100}%`,
+              transform: `translate(-50%, -50%) scale(${item.scale ?? 1}) rotate(${item.rotation ?? 0}deg)`,
+              zIndex: item.z_index ?? 0,
+            }}
+            className="w-[26%] max-w-[140px] aspect-square"
+          >
+            {src ? (
+              <Image
+                src={src}
+                alt={item.name ?? item.type}
+                fill
+                className="object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,0.18)]"
+                sizes="(max-width: 640px) 30vw, 20vw"
+                draggable={false}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-muted rounded-sm">
+                <span className="text-xs text-muted-foreground">
+                  {item.type}
+                </span>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

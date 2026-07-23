@@ -8,6 +8,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -139,6 +140,13 @@ class OutfitItem(Base):
     )
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     layer_type: Mapped[str | None] = mapped_column(String(20))
+
+    # Free-form canvas layout (nullable = no spatial position, fall back to grid)
+    pos_x: Mapped[float | None] = mapped_column(Float, nullable=True)
+    pos_y: Mapped[float | None] = mapped_column(Float, nullable=True)
+    scale: Mapped[float] = mapped_column(Float, nullable=False, server_default="1.0", default=1.0)
+    rotation: Mapped[float] = mapped_column(Float, nullable=False, server_default="0.0", default=0.0)
+    z_index: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0", default=0)
 
     # Relationships
     outfit: Mapped["Outfit"] = relationship("Outfit", back_populates="items")

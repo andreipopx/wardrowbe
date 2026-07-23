@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from itertools import combinations
 from uuid import UUID
@@ -19,6 +20,33 @@ from app.models.user import User
 from app.schemas.item import DEFAULT_WASH_INTERVALS
 from app.services.learning_service import LearningService
 from app.utils.clothing import canonical_item_order
+
+
+@dataclass
+class ItemLayoutInput:
+    """Framework-agnostic layout payload for one item on the outfit canvas.
+
+    Kept as a plain dataclass (not a Pydantic model) so this service module
+    stays free of any dependency on the API layer's request schemas.
+    """
+
+    item_id: UUID
+    pos_x: float | None = None
+    pos_y: float | None = None
+    scale: float = 1.0
+    rotation: float = 0.0
+    z_index: int = 0
+
+
+def _layouts_have_positions(layouts: list[ItemLayoutInput] | None) -> bool:
+    """True if the client sent at least one spatial coordinate on the canvas.
+
+    If nothing has coordinates, we fall back to canonical role ordering — the
+    outfit is still saved, just as a grid, not a laid-out composition.
+    """
+    if not layouts:
+        return False
+    return any(lo.pos_x is not None or lo.pos_y is not None for lo in layouts)
 
 
 class ItemOwnershipError(Exception):
@@ -140,9 +168,23 @@ class StudioService:
         scheduled_for: date | None,
         mark_worn: bool,
         source_item_id: UUID | None,
+        layouts: list[ItemLayoutInput] | None = None,
     ) -> Outfit:
         items = await self._validate_item_ownership(user.id, item_ids)
-        ordered = self._order_items_canonically(items)
+
+        # If the client sent explicit canvas coordinates, honor the order that
+        # array declares (visual authoring order); otherwise apply canonical
+        # role ordering so grid views stay tidy.
+        if _layouts_have_positions(layouts):
+            layout_by_id = {lo.item_id: lo for lo in layouts or []}
+            by_id = {item.id: item for item in items}
+            ordered = [by_id[lo.item_id] for lo in layouts or [] if lo.item_id in by_id]
+            layouts_ordered: list[ItemLayoutInput | None] = [
+                layout_by_id[item.id] for item in ordered
+            ]
+        else:
+            ordered = self._order_items_canonically(items)
+            layouts_ordered = [None] * len(ordered)
 
         effective_worn = scheduled_for if mark_worn else None
 
@@ -158,8 +200,19 @@ class StudioService:
         self.db.add(outfit)
         await self.db.flush()
 
-        for pos, item in enumerate(ordered):
-            self.db.add(OutfitItem(outfit_id=outfit.id, item_id=item.id, position=pos))
+        for pos, (item, lo) in enumerate(zip(ordered, layouts_ordered, strict=True)):
+            self.db.add(
+                OutfitItem(
+                    outfit_id=outfit.id,
+                    item_id=item.id,
+                    position=pos,
+                    pos_x=lo.pos_x if lo else None,
+                    pos_y=lo.pos_y if lo else None,
+                    scale=lo.scale if lo else 1.0,
+                    rotation=lo.rotation if lo else 0.0,
+                    z_index=lo.z_index if lo else 0,
+                )
+            )
 
         feedback = self.learning.create_synthetic_feedback(
             outfit_id=outfit.id, accepted=True, worn_at=effective_worn
@@ -362,6 +415,7 @@ class StudioService:
         outfit_id: UUID,
         name: str | None,
         items: list[UUID] | None,
+        layouts: list[ItemLayoutInput] | None = None,
     ) -> Outfit:
         result = await self.db.execute(
             select(Outfit)
@@ -378,12 +432,29 @@ class StudioService:
         if name is not None:
             outfit.name = name
 
-        if items is not None:
+        # A layouts-only patch (no `items`) still needs the item set to validate.
+        effective_item_ids: list[UUID] | None = items
+        if effective_item_ids is None and layouts is not None:
+            effective_item_ids = [lo.item_id for lo in layouts]
+
+        if effective_item_ids is not None:
             if outfit.feedback is not None and outfit.feedback.worn_at is not None:
                 raise OutfitWornImmutableError("cannot modify items on a worn outfit")
 
-            new_items = await self._validate_item_ownership(user.id, items)
-            ordered = self._order_items_canonically(new_items)
+            new_items = await self._validate_item_ownership(user.id, effective_item_ids)
+
+            if _layouts_have_positions(layouts):
+                layout_by_id = {lo.item_id: lo for lo in layouts or []}
+                by_id = {item.id: item for item in new_items}
+                ordered = [
+                    by_id[lo.item_id] for lo in layouts or [] if lo.item_id in by_id
+                ]
+                layouts_ordered: list[ItemLayoutInput | None] = [
+                    layout_by_id[item.id] for item in ordered
+                ]
+            else:
+                ordered = self._order_items_canonically(new_items)
+                layouts_ordered = [None] * len(ordered)
 
             old_item_ids = [oi.item_id for oi in outfit.items]
             new_item_ids = [i.id for i in ordered]
@@ -397,8 +468,19 @@ class StudioService:
             await self.db.execute(sa_delete(OutfitItem).where(OutfitItem.outfit_id == outfit.id))
             await self.db.flush()
 
-            for pos, item in enumerate(ordered):
-                self.db.add(OutfitItem(outfit_id=outfit.id, item_id=item.id, position=pos))
+            for pos, (item, lo) in enumerate(zip(ordered, layouts_ordered, strict=True)):
+                self.db.add(
+                    OutfitItem(
+                        outfit_id=outfit.id,
+                        item_id=item.id,
+                        position=pos,
+                        pos_x=lo.pos_x if lo else None,
+                        pos_y=lo.pos_y if lo else None,
+                        scale=lo.scale if lo else 1.0,
+                        rotation=lo.rotation if lo else 0.0,
+                        z_index=lo.z_index if lo else 0,
+                    )
+                )
             await self.db.flush()
 
             refreshed = await self._reload_outfit(outfit.id)

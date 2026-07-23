@@ -33,6 +33,7 @@ import {
 } from '@/lib/studio/editor-state';
 import {
   clearDraft,
+  draftItemsFrom,
   loadDraft,
   saveDraft,
   type StudioDraft,
@@ -80,6 +81,11 @@ export default function StudioEditorPage() {
       thumbnail_url: item.thumbnail_url ?? null,
       image_url: item.image_url ?? null,
       primary_color: item.primary_color ?? null,
+      pos_x: item.pos_x ?? null,
+      pos_y: item.pos_y ?? null,
+      scale: item.scale,
+      rotation: item.rotation,
+      z_index: item.z_index,
     }));
     dispatch({
       type: 'LOAD',
@@ -103,9 +109,12 @@ export default function StudioEditorPage() {
   }, [draftPrompted, isEditMode]);
 
   const draftItemCount = pendingDraft?.items.length ?? 0;
+  const draftIdsJoined = pendingDraft
+    ? pendingDraft.items.map((d) => d.id).join(',')
+    : '';
   const { data: draftItemsData } = useItems(
     pendingDraft
-      ? { ids: pendingDraft.items.join(','), is_archived: false }
+      ? { ids: draftIdsJoined, is_archived: false }
       : { is_archived: false },
     1,
     draftItemCount > 0 ? draftItemCount : 50
@@ -115,16 +124,24 @@ export default function StudioEditorPage() {
     if (!pendingDraft || !draftItemsData?.items) return;
     const byId = new Map(draftItemsData.items.map((i) => [i.id, i]));
     const resumedItems: StudioItem[] = pendingDraft.items
-      .map((id) => byId.get(id))
-      .filter((item): item is NonNullable<typeof item> => item !== undefined)
-      .map((item) => ({
-        id: item.id,
-        type: item.type,
-        name: item.name ?? null,
-        thumbnail_url: item.thumbnail_url ?? null,
-        image_url: item.image_url ?? null,
-        primary_color: item.primary_color ?? null,
-      }));
+      .map((draftItem) => {
+        const wardrobe = byId.get(draftItem.id);
+        if (!wardrobe) return null;
+        return {
+          id: wardrobe.id,
+          type: wardrobe.type,
+          name: wardrobe.name ?? null,
+          thumbnail_url: wardrobe.thumbnail_url ?? null,
+          image_url: wardrobe.image_url ?? null,
+          primary_color: wardrobe.primary_color ?? null,
+          pos_x: draftItem.pos_x ?? null,
+          pos_y: draftItem.pos_y ?? null,
+          scale: draftItem.scale,
+          rotation: draftItem.rotation,
+          z_index: draftItem.z_index,
+        } satisfies StudioItem;
+      })
+      .filter((item): item is StudioItem => item !== null);
     dispatch({
       type: 'LOAD',
       state: {
@@ -146,7 +163,7 @@ export default function StudioEditorPage() {
     if (!state.isDirty) return;
     const timer = setTimeout(() => {
       saveDraft({
-        items: state.items.map((i) => i.id),
+        items: draftItemsFrom(state.items),
         name: state.name,
         occasion: state.occasion,
       });
@@ -195,6 +212,14 @@ export default function StudioEditorPage() {
           payload: {
             name: state.name.trim() || undefined,
             items: state.items.map((i) => i.id),
+            items_layout: state.items.map((i) => ({
+              item_id: i.id,
+              pos_x: i.pos_x ?? null,
+              pos_y: i.pos_y ?? null,
+              scale: i.scale,
+              rotation: i.rotation,
+              z_index: i.z_index,
+            })),
           },
         });
         toast.success(t('toast.outfitUpdated'));
@@ -217,6 +242,14 @@ export default function StudioEditorPage() {
     try {
       await createMutation.mutateAsync({
         items: state.items.map((i) => i.id),
+        items_layout: state.items.map((i) => ({
+          item_id: i.id,
+          pos_x: i.pos_x ?? null,
+          pos_y: i.pos_y ?? null,
+          scale: i.scale,
+          rotation: i.rotation,
+          z_index: i.z_index,
+        })),
         occasion: state.occasion,
         name: state.name.trim() || undefined,
         scheduled_for: markWorn
@@ -404,6 +437,15 @@ export default function StudioEditorPage() {
               <CanvasPanel
                 items={state.items}
                 onRemove={(id) => dispatch({ type: 'REMOVE_ITEM', itemId: id })}
+                onMove={(id, pos_x, pos_y) =>
+                  dispatch({ type: 'MOVE_ITEM', itemId: id, pos_x, pos_y })
+                }
+                onBringToFront={(id) =>
+                  dispatch({ type: 'BRING_TO_FRONT', itemId: id })
+                }
+                onSendToBack={(id) =>
+                  dispatch({ type: 'SEND_TO_BACK', itemId: id })
+                }
               />
             </div>
             <div>

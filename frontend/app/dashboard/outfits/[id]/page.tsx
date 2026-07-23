@@ -24,6 +24,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineageCard } from '@/components/shared/lineage-card';
 import { CloneToLookbookDialog } from '@/components/shared/clone-to-lookbook-dialog';
+import { CanvasPreview } from '@/components/studio/canvas-panel';
+import { hasCanvasLayout } from '@/lib/studio/editor-state';
 import { useDeleteOutfit, useOutfit, useOutfits } from '@/lib/hooks/use-outfits';
 import { useWearToday } from '@/lib/hooks/use-studio';
 import { getErrorMessage } from '@/lib/api';
@@ -143,6 +145,26 @@ export default function OutfitDetailPage() {
       </div>
 
       <LineageCard outfit={outfit} />
+
+      {hasCanvasLayout(outfit.items) && (
+        <div className="pb-2">
+          <CanvasPreview
+            items={outfit.items.map((item) => ({
+              id: item.id,
+              type: item.type,
+              name: item.name,
+              thumbnail_url: item.thumbnail_url ?? null,
+              image_url: item.image_url ?? null,
+              primary_color: item.primary_color,
+              pos_x: item.pos_x ?? null,
+              pos_y: item.pos_y ?? null,
+              scale: item.scale,
+              rotation: item.rotation,
+              z_index: item.z_index,
+            }))}
+          />
+        </div>
+      )}
 
       <Card>
         <CardContent className="p-4">

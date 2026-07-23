@@ -1557,6 +1557,15 @@
     "wornConflictTitle": "Este outfit ya se ha llevado",
     "wornConflictBody": "Los outfits ya llevados no se editan (forman parte de tu historial). ¿Guardas los cambios como un lookbook nuevo?"
   },
+  "studioCanvas": {
+    "emptyTitle": "Un lienzo esperando historia",
+    "emptyHint": "Toca una prenda del armario para empezar a componer.",
+    "hint": "Mantén pulsada una prenda para moverla. Toca para seleccionar.",
+    "toolbarLabel": "Acciones sobre la prenda seleccionada",
+    "bringToFront": "Traer al frente",
+    "sendToBack": "Enviar detrás",
+    "remove": "Quitar del lienzo"
+  },
   "generatePairings": {
     "title": "Sugerir looks con esta pieza",
     "description": "La IA construirá outfits completos alrededor de esta prenda.",

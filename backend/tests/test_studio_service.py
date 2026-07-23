@@ -8,6 +8,7 @@ from app.models.item import ClothingItem, ItemStatus
 from app.models.outfit import OutfitSource, OutfitStatus
 from app.models.user import User
 from app.services.studio_service import (
+    ItemLayoutInput,
     ItemOwnershipError,
     OutfitNotTemplateError,
     OutfitWornImmutableError,
@@ -428,3 +429,145 @@ async def test_items_ordered_canonically(db_session, studio_user, wardrobe_items
     types_in_order = [oi.item.type for oi in sorted(outfit.items, key=lambda x: x.position)]
     assert types_in_order.index("t-shirt") < types_in_order.index("jeans")
     assert types_in_order.index("jeans") < types_in_order.index("sneakers")
+
+
+@pytest.mark.asyncio
+async def test_create_from_scratch_persists_layout_when_positions_present(
+    db_session, studio_user, wardrobe_items
+):
+    """When the client sends spatial coordinates, they must be saved verbatim
+    and the item order must follow the layout array (visual authoring order),
+    not the canonical role sort."""
+    service = StudioService(db_session)
+    shirt, jeans, sneakers = wardrobe_items[0], wardrobe_items[1], wardrobe_items[2]
+
+    layouts = [
+        ItemLayoutInput(item_id=sneakers.id, pos_x=0.5, pos_y=0.85, z_index=1),
+        ItemLayoutInput(item_id=shirt.id, pos_x=0.5, pos_y=0.3, z_index=2),
+        ItemLayoutInput(item_id=jeans.id, pos_x=0.5, pos_y=0.6, z_index=3),
+    ]
+
+    outfit = await service.create_from_scratch(
+        user=studio_user,
+        item_ids=[shirt.id, jeans.id, sneakers.id],
+        occasion="casual",
+        name="Layout look",
+        scheduled_for=None,
+        mark_worn=False,
+        source_item_id=None,
+        layouts=layouts,
+    )
+    await db_session.commit()
+
+    by_pos = sorted(outfit.items, key=lambda x: x.position)
+    # Layout defines the authoring order, so sneakers (index 0) must land first.
+    assert [oi.item_id for oi in by_pos] == [sneakers.id, shirt.id, jeans.id]
+    sneakers_oi = next(oi for oi in outfit.items if oi.item_id == sneakers.id)
+    assert sneakers_oi.pos_x == pytest.approx(0.5)
+    assert sneakers_oi.pos_y == pytest.approx(0.85)
+    assert sneakers_oi.z_index == 1
+
+
+@pytest.mark.asyncio
+async def test_create_from_scratch_ignores_empty_layout(
+    db_session, studio_user, wardrobe_items
+):
+    """A layout list where every entry lacks pos_x/pos_y must fall back to
+    canonical role ordering — the client is telling us 'add these items, no
+    specific arrangement'."""
+    service = StudioService(db_session)
+    shirt, jeans, sneakers = wardrobe_items[0], wardrobe_items[1], wardrobe_items[2]
+
+    layouts = [
+        ItemLayoutInput(item_id=sneakers.id),
+        ItemLayoutInput(item_id=jeans.id),
+        ItemLayoutInput(item_id=shirt.id),
+    ]
+
+    outfit = await service.create_from_scratch(
+        user=studio_user,
+        item_ids=[sneakers.id, jeans.id, shirt.id],
+        occasion="casual",
+        name=None,
+        scheduled_for=None,
+        mark_worn=False,
+        source_item_id=None,
+        layouts=layouts,
+    )
+    await db_session.commit()
+
+    by_pos = sorted(outfit.items, key=lambda x: x.position)
+    types_in_order = [oi.item.type for oi in by_pos]
+    # Canonical order should win when no coordinates were sent.
+    assert types_in_order.index("t-shirt") < types_in_order.index("jeans")
+    for oi in outfit.items:
+        assert oi.pos_x is None
+        assert oi.pos_y is None
+
+
+@pytest.mark.asyncio
+async def test_patch_outfit_updates_layout_only(
+    db_session, studio_user, wardrobe_items
+):
+    """A layouts-only patch (no `items` list) must reposition the existing
+    items without changing the set — used when the user drags things around
+    without adding/removing anything."""
+    service = StudioService(db_session)
+    shirt, jeans = wardrobe_items[0], wardrobe_items[1]
+
+    outfit = await service.create_from_scratch(
+        user=studio_user,
+        item_ids=[shirt.id, jeans.id],
+        occasion="casual",
+        name="Base",
+        scheduled_for=None,
+        mark_worn=False,
+        source_item_id=None,
+    )
+    await db_session.commit()
+
+    updated = await service.patch_outfit(
+        user=studio_user,
+        outfit_id=outfit.id,
+        name=None,
+        items=None,
+        layouts=[
+            ItemLayoutInput(item_id=shirt.id, pos_x=0.2, pos_y=0.3, z_index=1),
+            ItemLayoutInput(item_id=jeans.id, pos_x=0.7, pos_y=0.6, z_index=2),
+        ],
+    )
+    await db_session.commit()
+
+    assert len(updated.items) == 2
+    shirt_oi = next(oi for oi in updated.items if oi.item_id == shirt.id)
+    assert shirt_oi.pos_x == pytest.approx(0.2)
+    assert shirt_oi.pos_y == pytest.approx(0.3)
+
+
+@pytest.mark.asyncio
+async def test_legacy_outfits_still_have_null_layout(
+    db_session, studio_user, wardrobe_items
+):
+    """The migration must default pos_x/pos_y to NULL for outfits created
+    without a layout — that's how the detail page decides to render the
+    classic grid instead of the canvas."""
+    service = StudioService(db_session)
+    shirt, jeans = wardrobe_items[0], wardrobe_items[1]
+
+    outfit = await service.create_from_scratch(
+        user=studio_user,
+        item_ids=[shirt.id, jeans.id],
+        occasion="casual",
+        name=None,
+        scheduled_for=None,
+        mark_worn=False,
+        source_item_id=None,
+    )
+    await db_session.commit()
+
+    for oi in outfit.items:
+        assert oi.pos_x is None
+        assert oi.pos_y is None
+        assert oi.scale == 1.0
+        assert oi.rotation == 0.0
+        assert oi.z_index == 0

@@ -1557,6 +1557,15 @@
     "wornConflictTitle": "This outfit has already been worn",
     "wornConflictBody": "Worn outfits can't be edited because they're part of your wear history. Save your changes as a new lookbook entry?"
   },
+  "studioCanvas": {
+    "emptyTitle": "A canvas waiting for a story",
+    "emptyHint": "Tap an item in your wardrobe to start composing.",
+    "hint": "Long-press an item to move it. Tap to select.",
+    "toolbarLabel": "Actions on the selected item",
+    "bringToFront": "Bring to front",
+    "sendToBack": "Send to back",
+    "remove": "Remove from canvas"
+  },
   "generatePairings": {
     "title": "Suggest looks with this piece",
     "description": "The AI will build complete outfits around this piece.",
